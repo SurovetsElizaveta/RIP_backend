@@ -1,0 +1,40 @@
+<html lang="en">
+<head>
+    <title>Перевозки</title>
+    <link rel="stylesheet" href="/static/styles/index_style.css">
+</head>
+<header>
+    <a href="/hello"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
+    <div class="request-link">
+        <a href="/requests"><h4>Заявка</h4></a>
+        <div class="request-counter">
+            <h4>3</h4>
+        </div>
+    </div>
+</header>
+<body>
+    <div class="main-space">
+        <form class="search-bar" action="/hello" method="GET">
+            <input class="search-bar-input" type="text" name="query" value="{{ .query }}">
+            <div style="width: 10px"></div>
+            <button class="search-bar-btn" type="submit">Поиск</button>
+        </form>
+        <div class="cards">
+            {{ range .orders }}
+            <a href="/order/{{ .ID }}">
+                <div class="card">
+                    <div class="card-info">
+                        <div class="card-info-text">
+                            <h4> {{ .Title }} </h4>
+                            <h5>{{ .Distance }} km</h5>
+                        </div>
+                        <!-- <button class="add-request-btn">Оставить заявку</button> -->
+                    </div>
+                    <img class="card-img" src="{{ .Image }}" alt="order{{ .ID }}">
+                </div>
+            </a>
+            {{ end }}
+        </div>
+    </div>
+</body>
+</html>

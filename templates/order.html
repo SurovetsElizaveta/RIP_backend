@@ -1,0 +1,29 @@
+<html lang="en">
+<head>
+    <title>Перевозка</title>
+    <link rel="stylesheet" href="/static/styles/order_style.css">
+</head>
+<header>
+    <a href="/hello"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
+    <div class="request-link">
+        <a href="/requests"><h4>Заявка</h4></a>
+        <div class="request-counter">
+            <h4>3</h4>
+        </div>
+    </div>
+</header>
+<body>
+    <div class="main-space">
+        <div class="card">
+            <div class="card-info">
+                <h1>{{.order.Title}}</h1>
+                <h2>О перевозке</h2>
+                <h3>{{.order.Description}}</h3>
+                <h2>Расстояние</h2>
+                <h3>{{.order.Distance}} km</h3>
+            </div>
+            <img class="card-img" src="{{.order.Image}}" alt="order{{ .ID }}">
+        </div>
+    </div>
+</body>
+</html>
