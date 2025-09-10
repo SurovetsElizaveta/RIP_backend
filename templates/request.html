@@ -4,31 +4,39 @@
     <link rel="stylesheet" href="/static/styles/request_style.css">
 </head>
 <header>
-    <a href="/hello"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
+    <a href="/routes"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
     <div class="request-link">
-        <a href="/requests"><h4>Заявка</h4></a>
+        <a href="/request"><h4>Заявка</h4></a>
         <div class="request-counter">
-            <h4>3</h4>
+            <h4>{{ len .requestRoutes }}</h4>
         </div>
     </div>
 </header>
 <body>
     <div class="main-space">
         <h3>Заявка</h3>
-        <form class="speed-bar" action="/requests" method="GET">
-            <input class="speed-bar-input" type="text" placeholder="Скорость контейнеровоза" name="speed" value="{{ .speed }}">
-            <div style="width: 10px"></div>
-            <button class="speed-bar-btn" type="submit">Сохранить</button>
-        </form>
-        <div class="requests">
-            {{ range .requests }}
-            <div class="request">
-                <img class="request-img" src="{{.Image}}" alt="request{{ .ID }}">
-                <div class="request-info">
-                    <h4> {{ .Title }} {{.Distance}} km</h4>
+        <div class="routes">
+        {{ range .requestRoutes }}
+        <div class="departure-date">Дата отправления: {{ .DepartureDate.Format "02.01.2006" }}</div>
+        <div class="route">
+            {{ range .RouteInfo }}
+            {{ $route := index $.routesMap .RouteId }}
+            <div class="route-img">
+                <img class="route-img" src="{{ $route.Image }}" alt="route{{ $route.ID }}">
+            </div>
+            <div class="route-info">
+                <h4>{{ $route.Title }}, {{ $route.Distance }} км</h4>
+            </div>
+            <div class="route-arrival-info">
+                <h4>Дата прибытия: {{ .ArrivalDate.Format "02.01.2006" }}</h4>
+                <div class="ship-speed">
+                    <h4>Средняя скорость контейнеровоза:</h4>
+                    <h4 class="speed-value">{{ .ShipSpeed }}</h4>
                 </div>
             </div>
             {{ end }}
+        </div>
+        {{ end }}
         </div>
     </div>
 </body>

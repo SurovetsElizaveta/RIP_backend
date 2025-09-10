@@ -58,14 +58,6 @@ header img {
     margin-left: 10px;
 }
 
-.request-link {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    margin-right: 10px;
-    height: 100%;
-}
-
 header h4 {
     color: #FFFFFF;
     font-weight: Bold;
@@ -74,18 +66,37 @@ header h4 {
     justify-items:center;
 }
 
+.filter-and-request {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.request-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    background-color: #09388A;
+    position: relative;
+}
+
 .request-counter {
-    background-color: #FE991F;
+    background-color: #09388A;
     border-radius: 20px;
+    border: 1px solid #FFFFFF;
     width: 20px;
     height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 10; 
 }
 
 .request-counter h4 {
-    color: #001E42;
+    color: #FFFFFF;
     font-size: 14px;
     font-weight: Bold;
 }
@@ -95,6 +106,7 @@ header h4 {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
 }
 
 .search-bar {

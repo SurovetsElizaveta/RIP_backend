@@ -4,24 +4,26 @@
     <link rel="stylesheet" href="/static/styles/index_style.css">
 </head>
 <header>
-    <a href="/hello"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
-    <div class="request-link">
-        <a href="/requests"><h4>Заявка</h4></a>
-        <div class="request-counter">
-            <h4>3</h4>
-        </div>
-    </div>
+    <a href="/routes"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
 </header>
 <body>
     <div class="main-space">
-        <form class="search-bar" action="/hello" method="GET">
-            <input class="search-bar-input" type="text" name="query" value="{{ .query }}">
-            <div style="width: 10px"></div>
-            <button class="search-bar-btn" type="submit">Поиск</button>
-        </form>
+        <div class="filter-and-request">
+            <form class="search-bar" action="/routes" method="GET">
+                <input class="search-bar-input" type="text" name="query" value="{{ .query }}">
+                <div style="width: 10px"></div>
+                <button class="search-bar-btn" type="submit">Поиск</button>
+            </form>
+            <div class="request-link">
+                <a href="/request"><img src="http://127.0.0.1:9000/test/sea_request.svg" alt="request"></a>
+                <div class="request-counter">
+                    <h4>2</h4>
+                </div>
+            </div>
+        </div>
         <div class="cards">
-            {{ range .orders }}
-            <a href="/order/{{ .ID }}">
+            {{ range .routes }}
+            <a href="/route/{{ .ID }}">
                 <div class="card">
                     <div class="card-info">
                         <div class="card-info-text">
@@ -30,7 +32,7 @@
                         </div>
                         <!-- <button class="add-request-btn">Оставить заявку</button> -->
                     </div>
-                    <img class="card-img" src="{{ .Image }}" alt="order{{ .ID }}">
+                    <img class="card-img" src="{{ .Image }}" alt="route{{ .ID }}">
                 </div>
             </a>
             {{ end }}

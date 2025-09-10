@@ -101,6 +101,10 @@ header h4 {
     font-weight: 450;
 }
 
+/*  */
+/*  */
+/*  */
+
 .speed-bar {
     width: 535px;
     height: 40px;
@@ -133,24 +137,41 @@ header h4 {
     cursor: pointer; 
 }
 
-.requests {
+.routes {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.request {
-    width: 500px;
-    height: 200px;
+.departure-date {
+    width: 100px;
+    height: 40px;
+    background-color: #FFFFFF;
+}
+
+.route {
+    width: 100%;
+    height: 120px;
     background-color: #FFFFFF;
     padding: 10px;
     display: grid;
-    grid-template-columns: 160px auto;
+    grid-template-columns: 160px 240px auto;
     gap: 10px;
 }
 
-.request-img {
+.route-img {
     width: 140px;
     height: 100%;
     object-fit: cover;
+}
+
+.route-arrival-info {
+    display: flex;
+    justify-content: end;
+}
+
+.speed-value {
+    color: #FE991F;
+    font-weight: bold;
 }
