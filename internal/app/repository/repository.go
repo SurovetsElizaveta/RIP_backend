@@ -115,66 +115,55 @@ type Request struct { // вот наша новая структура
 // время прибытия = дата отправления + время доставки
 // время доставки = 1 день на погрузку + путь (со скоростью 23 узла) + 1 день на разгрузку
 
-func (r *Repository) GetRequestDraft() ([]Request, error) {
+func (r *Repository) GetRequestDraft() (Request, error) {
 	// имитируем работу с БД. Типа мы выполнили sql запрос и получили эти строки из БД
-	requestRoutes := []Request{ // массив элементов из наших структур
-		{
-			ID:            1,
-			DepartureDate: time.Date(2025, time.March, 14, 10, 0, 0, 0, time.UTC),
-			RouteInfo: []RouteRequest{
-				{
-					RouteId:     1,
-					ArrivalDate: time.Date(2025, time.March, 21, 12, 0, 0, 0, time.UTC),
-				},
+	request := Request{ // массив элементов из наших структур
+		ID:            1,
+		DepartureDate: time.Date(2025, time.March, 14, 10, 0, 0, 0, time.UTC),
+		RouteInfo: []RouteRequest{
+			{
+				RouteId:     1,
+				ArrivalDate: time.Date(2025, time.March, 21, 12, 0, 0, 0, time.UTC),
 			},
-		},
-		{
-			ID:            2,
-			DepartureDate: time.Date(2025, time.March, 25, 10, 0, 0, 0, time.UTC),
-			RouteInfo: []RouteRequest{
-				{
-					RouteId:     2,
-					ArrivalDate: time.Date(2025, time.April, 5, 12, 0, 0, 0, time.UTC),
-				},
+			{
+				RouteId:     2,
+				ArrivalDate: time.Date(2025, time.April, 5, 12, 0, 0, 0, time.UTC),
 			},
 		},
 	}
 	// обязательно проверяем ошибки, и если они появились - передаем выше, то есть хендлеру
 	// тут я снова искусственно обработаю "ошибку" чисто чтобы показать вам как их передавать выше
-	if len(requestRoutes) == 0 {
-		return nil, fmt.Errorf("массив пустой")
+	if len(request.RouteInfo) == 0 {
+		return Request{}, fmt.Errorf("массив пустой")
 	}
 
-	var result []Request
-	for _, req := range requestRoutes {
-		// Создаем копию запроса, которую будем модифицировать
-		newReq := Request{
-			ID:            req.ID,
-			DepartureDate: req.DepartureDate,
-			RouteInfo:     make([]RouteRequest, len(req.RouteInfo)),
-		}
-
-		// Копируем и модифицируем RouteInfo
-		for i, routeReq := range req.RouteInfo {
-			route, err := r.GetRoute(routeReq.RouteId)
-			if err != nil {
-				logrus.Errorf("Ошибка получения маршрута %d: %v", routeReq.RouteId, err)
-				continue
-			}
-
-			// Расчет скорости
-			shipSpeed := calculateShipSpeed(req.DepartureDate, routeReq.ArrivalDate, route.Delay, route.Distance)
-
-			// Создаем новый RouteRequest с рассчитанной скоростью
-			newReq.RouteInfo[i] = RouteRequest{
-				RouteId:     routeReq.RouteId,
-				ArrivalDate: routeReq.ArrivalDate,
-				ShipSpeed:   shipSpeed,
-			}
-		}
-
-		result = append(result, newReq)
+	var result Request
+	// Создаем копию запроса, которую будем модифицировать
+	newReq := Request{
+		ID:            request.ID,
+		DepartureDate: request.DepartureDate,
+		RouteInfo:     make([]RouteRequest, len(request.RouteInfo)),
 	}
+
+	for i, routeReq := range request.RouteInfo {
+		route, err := r.GetRoute(routeReq.RouteId)
+		if err != nil {
+			logrus.Errorf("Ошибка получения маршрута %d: %v", routeReq.RouteId, err)
+			continue
+		}
+
+		// Расчет скорости
+		shipSpeed := calculateShipSpeed(request.DepartureDate, routeReq.ArrivalDate, route.Delay, route.Distance)
+
+		// Создаем новый RouteRequest с рассчитанной скоростью
+		newReq.RouteInfo[i] = RouteRequest{
+			RouteId:     routeReq.RouteId,
+			ArrivalDate: routeReq.ArrivalDate,
+			ShipSpeed:   shipSpeed,
+		}
+	}
+
+	result = newReq
 
 	return result, nil
 }
@@ -188,4 +177,20 @@ func calculateShipSpeed(departureDate time.Time, arrivalDate time.Time, delay ti
 	speedKnots := float64(speedKmh) / 1.852
 
 	return int(speedKnots)
+}
+
+func (r *Repository) GetRoutesByDistance(minDistance, maxDistance int) ([]Route, error) {
+	routes, err := r.GetRoutes()
+	if err != nil {
+		return []Route{}, err
+	}
+
+	var result []Route
+	for _, route := range routes {
+		if route.Distance >= minDistance && route.Distance <= maxDistance {
+			result = append(result, route)
+		}
+	}
+
+	return result, nil
 }

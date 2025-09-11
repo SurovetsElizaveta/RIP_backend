@@ -9,28 +9,26 @@
 <body>
     <div class="main-space">
         <h3>Заявка</h3>
+        <div class="departure-date"><h4>Дата отправления: {{ .request.DepartureDate.Format "02.01.2006" }}</h4></div>
         <div class="routes">
-        {{ range .requestRoutes }}
-        <div class="departure-date">Дата отправления: {{ .DepartureDate.Format "02.01.2006" }}</div>
-        <div class="route">
-            {{ range .RouteInfo }}
+            {{ range .request.RouteInfo }}
             {{ $route := index $.routesMap .RouteId }}
-            <div class="route-img">
-                <img class="route-img" src="{{ $route.Image }}" alt="route{{ $route.ID }}">
-            </div>
-            <div class="route-info">
-                <h4>{{ $route.Title }}, {{ $route.Distance }} км</h4>
-            </div>
-            <div class="route-arrival-info">
-                <h4>Дата прибытия: {{ .ArrivalDate.Format "02.01.2006" }}</h4>
-                <div class="ship-speed">
-                    <h4>Средняя скорость контейнеровоза:</h4>
-                    <h4 class="speed-value">{{ .ShipSpeed }}</h4>
+            <div class="route">
+                <div class="route-img">
+                    <img class="route-img" src="{{ $route.Image }}" alt="route{{ $route.ID }}">
+                </div>
+                <div class="route-info">
+                    <h4>{{ $route.Title }}, {{ $route.Distance }} км</h4>
+                </div>
+                <div class="route-arrival-info">
+                    <h4 class="arrival-date">Дата прибытия: {{ .ArrivalDate.Format "02.01.2006" }}</h4>
+                    <div class="ship-speed">
+                        <h4>Средняя скорость контейнеровоза:</h4>
+                        <h4 class="speed-value">{{ .ShipSpeed }} узл.</h4>
+                    </div>
                 </div>
             </div>
             {{ end }}
-        </div>
-        {{ end }}
         </div>
     </div>
 </body>

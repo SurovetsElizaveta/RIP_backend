@@ -137,6 +137,16 @@ header h4 {
     cursor: pointer; 
 }
 
+.departure-date {
+    width: 220px;
+    height: 40px;
+    background-color: #FFFFFF;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    padding-left: 10px;
+}
+
 .routes {
     width: 100%;
     display: flex;
@@ -144,15 +154,9 @@ header h4 {
     gap: 10px;
 }
 
-.departure-date {
-    width: 100px;
-    height: 40px;
-    background-color: #FFFFFF;
-}
-
 .route {
     width: 100%;
-    height: 120px;
+    height: 100px;
     background-color: #FFFFFF;
     padding: 10px;
     display: grid;
@@ -162,13 +166,28 @@ header h4 {
 
 .route-img {
     width: 140px;
-    height: 100%;
+    height: 100px;
     object-fit: cover;
 }
 
 .route-arrival-info {
     display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: end;
+    gap: 10px;
+}
+
+.arrival-date {
+    display: flex;
     justify-content: end;
+}
+
+.ship-speed {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    gap: 4px;
 }
 
 .speed-value {

@@ -7,20 +7,24 @@
     <a href="/routes"><img src="http://127.0.0.1:9000/test/main_ship.svg" alt="home"></a>
 </header>
 <body>
-    <div class="main-space">
-        <div class="filter-and-request">
-            <form class="search-bar" action="/routes" method="GET">
-                <input class="search-bar-input" type="text" name="query" value="{{ .query }}">
-                <div style="width: 10px"></div>
-                <button class="search-bar-btn" type="submit">Поиск</button>
-            </form>
-            <div class="request-link">
-                <a href="/request"><img src="http://127.0.0.1:9000/test/sea_request.svg" alt="request"></a>
-                <div class="request-counter">
-                    <h4>2</h4>
-                </div>
-            </div>
+    <div class="request-link {{ if eq (len .request.RouteInfo) 0 }}empty-request{{ end }}">
+        <a href="/request">
+            <img src="{{ if eq (len .request.RouteInfo) 0 }}http://127.0.0.1:9000/test/sea_request_null.svg{{ else }}http://127.0.0.1:9000/test/sea_request.svg{{ end }}" 
+             alt="request" class="request-icon">
+        </a>
+        <div class="request-counter {{ if eq (len .request.RouteInfo) 0 }}empty-request{{ end }}">
+            <h4>{{ len .request.RouteInfo }}</h4>
         </div>
+    </div>
+    <div class="main-space">
+        <form class="distance-filter-bar" action="/routes" method="GET">
+            <h4>Расстояние от</h4>
+            <input class="distance-filter-input" type="number" name="min_distance" value="{{ .minDistance }}">
+            <h4>до</h4>
+            <input class="distance-filter-input" type="number" name="max_distance" value="{{ .maxDistance }}">
+            <button class="distance-filter-btn" type="submit">Применить</button>
+            <a href="/routes" class="distance-filter-btn">Сбросить</a>
+        </form>
         <div class="cards">
             {{ range .routes }}
             <a href="/route/{{ .ID }}">

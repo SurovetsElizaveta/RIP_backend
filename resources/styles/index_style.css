@@ -66,21 +66,19 @@ header h4 {
     justify-items:center;
 }
 
-.filter-and-request {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
 .request-link {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     margin-right: 10px;
     width: 60px;
     height: 60px;
     background-color: #09388A;
-    position: relative;
+    position: absolute;
+    top: 70;
+    right: 4;
+    z-index: 10; 
 }
 
 .request-counter {
@@ -90,13 +88,53 @@ header h4 {
     width: 20px;
     height: 20px;
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 4;
+    right: 2;
     z-index: 10; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .request-counter h4 {
     color: #FFFFFF;
+    font-size: 14px;
+    font-weight: Bold;
+}
+
+.request-link.empty-request {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    background-color: #FFFFFF;
+    border: 1px solid #09388A;
+    position: absolute;
+    top: 70;
+    right: 4;
+    z-index: 10; 
+}
+
+.request-counter.empty-request {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid #09388A;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 4;
+    right: 2;
+    z-index: 10; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.request-counter.empty-request h4 {
+    color: #09388A;
     font-size: 14px;
     font-weight: Bold;
 }
@@ -109,34 +147,36 @@ header h4 {
     position: relative;
 }
 
-.search-bar {
-    width: 525px;
+.distance-filter-bar {
+    width: 100%;
     height: 40px;
-    margin: 20px;
     display: flex;
+    flex-direction: row;
+    gap: 10px;
     justify-content: center;
+    align-items: center;
+    margin: 20px 0px 20px 0px;
 }
 
-.search-bar-input {
-    width: 400px;
+.distance-filter-input {
+    width: 80px;
     height: 40px;
     border: #FFFFFF;
+    padding-left: 10px;
 }
 
-.search-bar-btn {
+.distance-filter-btn {
     padding: 10px 24px 10px 24px;
     background-color: #FE991F;
     border: transparent;
     font-size: 14px;
-    font-weight: bold;
+    font-weight: 450;
     color: #FFFFFF;
 }
 
-.search-bar-btn:hover {
+.distance-filter-btn:hover {
     background-color: transparent;
     border: 1px solid #FE991F;
-    font-size: 14px;
-    font-weight: bold;
     color: #FE991F;  
     cursor: pointer; 
 }

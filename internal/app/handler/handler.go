@@ -19,27 +19,96 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
+// func (h *Handler) GetRoutes(ctx *gin.Context) {
+// 	var routes []repository.Route
+// 	var err error
+
+// 	searchQuery := ctx.Query("query") // получаем значение из поля поиска
+// 	if searchQuery == "" {            // если поле поиска пусто, то просто получаем из репозитория все записи
+// 		routes, err = h.Repository.GetRoutes()
+// 		if err != nil {
+// 			logrus.Error(err)
+// 		}
+// 	} else {
+// 		routes, err = h.Repository.GetRoutesByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+// 		if err != nil {
+// 			logrus.Error(err)
+// 		}
+// 	}
+
+// 	ctx.HTML(http.StatusOK, "index.html", gin.H{
+// 		"routes": routes,
+// 		"query":  searchQuery, // передаем введенный запрос обратно на страницу
+// 		// в ином случае оно будет очищаться при нажатии на кнопку
+// 	})
+// }
+
 func (h *Handler) GetRoutes(ctx *gin.Context) {
 	var routes []repository.Route
 	var err error
 
-	searchQuery := ctx.Query("query") // получаем значение из поля поиска
-	if searchQuery == "" {            // если поле поиска пусто, то просто получаем из репозитория все записи
+	minDistanceStr := ctx.Query("min_distance")
+	maxDistanceStr := ctx.Query("max_distance") // получаем значение из поля поиска
+	if minDistanceStr == "" && maxDistanceStr == "" {
 		routes, err = h.Repository.GetRoutes()
 		if err != nil {
 			logrus.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 	} else {
-		routes, err = h.Repository.GetRoutesByTitle(searchQuery) // в ином случае ищем заказ по заголовку
+		// Преобразуем параметры в числа
+		var minDistance, maxDistance int
+		var err error
+
+		if minDistanceStr != "" {
+			minDistance, err = strconv.Atoi(minDistanceStr)
+			if err != nil {
+				logrus.Error("Ошибка преобразования min_distance:", err)
+				minDistance = 0
+			}
+		}
+
+		if maxDistanceStr != "" {
+			maxDistance, err = strconv.Atoi(maxDistanceStr)
+			if err != nil {
+				logrus.Error("Ошибка преобразования max_distance:", err)
+				maxDistance = 10000 // Большое значение по умолчанию
+			}
+		}
+
+		// Если задан только один параметр, устанавливаем разумные значения по умолчанию
+		if minDistanceStr == "" {
+			minDistance = 0
+		}
+		if maxDistanceStr == "" {
+			maxDistance = 20000
+		}
+
+		routes, err = h.Repository.GetRoutesByDistance(minDistance, maxDistance)
 		if err != nil {
 			logrus.Error(err)
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 	}
 
+	// Преобразуем обратно в строки для отображения в форме
+	minDistanceValue := ctx.Query("min_distance")
+	maxDistanceValue := ctx.Query("max_distance")
+
+	request, err := h.Repository.GetRequestDraft()
+	if err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"routes": routes,
-		"query":  searchQuery, // передаем введенный запрос обратно на страницу
-		// в ином случае оно будет очищаться при нажатии на кнопку
+		"routes":      routes,
+		"minDistance": minDistanceValue,
+		"maxDistance": maxDistanceValue,
+		"request":     request,
 	})
 }
 
@@ -61,8 +130,8 @@ func (h *Handler) GetRoute(ctx *gin.Context) {
 	})
 }
 
-func (h *Handler) GetRequests(ctx *gin.Context) {
-	requestRoutes, err := h.Repository.GetRequestDraft()
+func (h *Handler) GetRequestDraft(ctx *gin.Context) {
+	request, err := h.Repository.GetRequestDraft()
 	if err != nil {
 		logrus.Error(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -83,7 +152,7 @@ func (h *Handler) GetRequests(ctx *gin.Context) {
 	}
 
 	ctx.HTML(http.StatusOK, "request.html", gin.H{
-		"requestRoutes": requestRoutes,
-		"routesMap":     routesMap, // Передаем map вместо массива
+		"request":   request,
+		"routesMap": routesMap, // Передаем map вместо массива
 	})
 }
