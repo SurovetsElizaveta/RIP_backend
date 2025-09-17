@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Перевозка</title>
+    <link rel="stylesheet" href="/styles/route_style.css">
+</head>
+<header>
+    <a href="/routes"><img src="http://127.0.0.1:9000/routes/main_ship.svg" alt="routes"></a>
+</header>
+<body>
+    <div class="main-space">
+        <div class="card">
+            <div class="card-info">
+                <h1>{{ .Title }}</h1>
+                <h2>О перевозке</h2>
+                <h3>{{ .Description }}</h3>
+                <h2>Расстояние</h2>
+                <h3>{{ .Distance }} km</h3>
+            </div>
+            <img class="card-img" src="{{ .ImageUrl }}" alt="route{{ .RouteID }}">
+        </div>
+    </div>
+</body>
+</html>

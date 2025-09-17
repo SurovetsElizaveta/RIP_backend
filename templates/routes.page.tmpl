@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Перевозки</title>
+    <link rel="stylesheet" href="/styles/routes_style.css">
+</head>
+<header>
+    <a href="/routes"><img src="http://127.0.0.1:9000/routes/main_ship.svg" alt="routes"></a>
+</header>
+<body>
+    <div class="request-link {{ if eq .draftCount 0 }}empty-request{{ end }}">
+        <a href="/draft">
+            <img src="{{ if eq .draftCount 0 }}http://127.0.0.1:9000/routes/sea_request_null.svg{{ else }}http://127.0.0.1:9000/routes/sea_request.svg{{ end }}" 
+             alt="request" class="request-icon">
+        </a>
+        <div class="request-counter {{ if eq .draftCount 0 }}empty-request{{ end }}">
+            <h4>{{ .draftCount }}</h4>
+        </div>
+    </div>
+    <div class="main-space">
+        <form class="distance-filter-bar" action="/routes" method="GET">
+            <h4>Расстояние от</h4>
+            <input class="distance-filter-input" type="number" name="min_distance" value="{{ .minDistance }}">
+            <h4>до</h4>
+            <input class="distance-filter-input" type="number" name="max_distance" value="{{ .maxDistance }}">
+            <button class="distance-filter-btn" type="submit">Применить</button>
+            <a href="/routes" class="distance-filter-btn">Сбросить</a>
+        </form>
+        <div class="cards">
+            {{ range .routes }}
+            <a href="/routes/{{ .RouteID }}">
+                <div class="card">
+                    <div class="card-info">
+                        <div class="card-info-text">
+                            <h4> {{ .Title }} </h4>
+                            <h5>{{ .Distance }} km</h5>
+                        </div>
+                        <form action="/add-to-draft/{{ .RouteID }}" method="POST" class="add-to-draft-form">
+                            <button type="submit" class="add-to-draft-btn">
+                                Добавить в заявку
+                            </button>
+                        </form>
+                    </div>
+                    <img class="card-img" src="{{ .ImageUrl }}" alt="route{{ .RouteID }}">
+                </div>
+            </a>
+            {{ end }}
+        </div>
+    </div>
+</body>
+</html>
