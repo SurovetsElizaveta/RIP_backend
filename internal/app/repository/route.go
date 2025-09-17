@@ -157,7 +157,7 @@ func (r *Repository) AddRouteToDraft(routeID int, userID int) error {
 		return fmt.Errorf("маршрут с ID %d не найден", routeID)
 	}
 
-	arrivalDate := time.Date(2025, time.August, 21, 15, 0, 0, 0, time.UTC)
+	arrivalDate := time.Date(2025, time.August, 9, 15, 0, 0, 0, time.UTC)
 	shipSpeed := calculateShipSpeed(
 		draft.DepartureDate, // дата отправления
 		arrivalDate,         // дата прибытия
@@ -205,21 +205,11 @@ func (r *Repository) DeleteDraftRequest(requestID int) error {
 }
 
 func calculateShipSpeed(departureDate time.Time, arrivalDate time.Time, delay int, distance int) int {
-	if departureDate == (time.Time{}) || arrivalDate == (time.Time{}) {
+	if departureDate.IsZero() || arrivalDate.IsZero() {
 		return 0
 	}
-	travelDays := arrivalDate.Sub(departureDate.AddDate(0, delay, 0))
-	speedKmh := distance / int(travelDays.Hours())
+	travelDays := arrivalDate.Sub(departureDate).Hours() - float64(delay)
+	speedKmh := distance / int(travelDays)
 	speedKnots := float64(speedKmh) / 1.852
 	return int(speedKnots)
 }
-
-// func (r *Repository) DeleteChat(chatID uint) error {
-// 	err := r.db.Model(&ds.Chat{}).Where("id = ?", chatID).UpdateColumn("is_delete", true).Error
-// 	fmt.Println(chatID)
-// 	if err != nil {
-// 		return fmt.Errorf("ошибка при удалении чата с id %d: %w", chatID, err)
-// 	}
-
-// 	return nil
-// }

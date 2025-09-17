@@ -72,8 +72,6 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 	// Преобразуем обратно в строки для отображения в форме
 	minDistanceValue := ctx.Query("min_distance")
 	maxDistanceValue := ctx.Query("max_distance")
-	successMsg := ctx.Query("success")
-	errorMsg := ctx.Query("error")
 
 	draftCount := h.Repository.GetDraftCount()
 
@@ -82,8 +80,6 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 		"minDistance": minDistanceValue,
 		"maxDistance": maxDistanceValue,
 		"draftCount":  draftCount,
-		"successMsg":  successMsg,
-		"errorMsg":    errorMsg,
 	})
 }
 
