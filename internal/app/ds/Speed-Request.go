@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-type Request struct {
-	RequestID      int `gorm:"primaryKey"`
+type SpeedRequest struct {
+	SpeedRequestID int `gorm:"primaryKey"`
 	DepartureDate  time.Time
 	CreationDate   time.Time `gorm:"not null"`
 	FormationDate  time.Time

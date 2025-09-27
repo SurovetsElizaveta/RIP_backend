@@ -69,6 +69,15 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 		return
 	}
 
+	var speedDraft ds.SpeedRequest
+
+	speedDraft, err = h.Repository.GetDraftSpeedRequest()
+	if err != nil {
+		logrus.Error(err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	// Преобразуем обратно в строки для отображения в форме
 	minDistanceValue := ctx.Query("min_distance")
 	maxDistanceValue := ctx.Query("max_distance")
@@ -76,10 +85,11 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 	draftCount := h.Repository.GetDraftCount()
 
 	ctx.HTML(http.StatusOK, "routes.page.tmpl", gin.H{
-		"routes":      routes,
-		"minDistance": minDistanceValue,
-		"maxDistance": maxDistanceValue,
-		"draftCount":  draftCount,
+		"routes":       routes,
+		"minDistance":  minDistanceValue,
+		"maxDistance":  maxDistanceValue,
+		"draftCount":   draftCount,
+		"speedRequest": speedDraft,
 	})
 }
 
@@ -106,8 +116,25 @@ func (h *Handler) GetRouteById(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "route.page.tmpl", route)
 }
 
-func (h *Handler) GetDraftRequest(ctx *gin.Context) {
-	request, err := h.Repository.GetDraftRequest()
+func (h *Handler) GetDraftByID(ctx *gin.Context) {
+	speedRequestIDStr := ctx.Param("speed_request_id")
+	speedRequestID, err := strconv.Atoi(speedRequestIDStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
+		return
+	}
+
+	// Используем новый метод репозитория для поиска по ID
+	speedRequest, err := h.Repository.GetSpeedRequestByID(speedRequestID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Заявка не найдена: " + err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+
+	routes, err := h.Repository.GetRoutesBySpeedRequestID(speedRequest.SpeedRequestID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -116,7 +143,7 @@ func (h *Handler) GetDraftRequest(ctx *gin.Context) {
 		return
 	}
 
-	routes, err := h.Repository.GetRoutesByRequestID(request.RequestID)
+	speedRequestRoutes, err := h.Repository.GetSpeedRequestRoutes(speedRequest.SpeedRequestID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -125,24 +152,15 @@ func (h *Handler) GetDraftRequest(ctx *gin.Context) {
 		return
 	}
 
-	requestRoutes, err := h.Repository.GetRequestRoutes(request.RequestID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		logrus.Error(err)
-		return
-	}
-
-	requestRoutesMap := make(map[int]ds.RequestRoute)
-	for _, rr := range requestRoutes {
-		requestRoutesMap[rr.RouteID] = rr
+	speedRequestRoutesMap := make(map[int]ds.RouteSpeedRequest)
+	for _, rr := range speedRequestRoutes {
+		speedRequestRoutesMap[rr.RouteID] = rr
 	}
 
 	ctx.HTML(http.StatusOK, "draft.page.tmpl", gin.H{
-		"request":          request,
-		"routes":           routes,
-		"requestRoutesMap": requestRoutesMap,
+		"speedRequest":          speedRequest,
+		"routes":                routes,
+		"speedRequestRoutesMap": speedRequestRoutesMap,
 	})
 }
 
@@ -168,17 +186,17 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 	ctx.Redirect(http.StatusSeeOther, "/routes")
 }
 
-func (h *Handler) DeleteDraftRequest(ctx *gin.Context) {
+func (h *Handler) DeleteDraftSpeedRequest(ctx *gin.Context) {
 	// считываем значение из формы, которую мы добавим в наш шаблон
-	strRequestId := ctx.Param("request_id")
-	requestID, err := strconv.Atoi(strRequestId)
+	strSpeedRequestId := ctx.Param("speed_request_id")
+	speedRequestID, err := strconv.Atoi(strSpeedRequestId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 	}
 	// Вызов функции добавления чата в заявку
-	err = h.Repository.DeleteDraftRequest(int(requestID))
+	err = h.Repository.DeleteDraftSpeedRequest(int(speedRequestID))
 	if err != nil && !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 		return
 	}
@@ -186,22 +204,3 @@ func (h *Handler) DeleteDraftRequest(ctx *gin.Context) {
 	// после вызова сразу произойдет обновление страницы
 	ctx.Redirect(http.StatusFound, "/routes")
 }
-
-// func (h *Handler) DeleteChat(ctx *gin.Context) {
-// 	// считываем значение из формы, которую мы добавим в наш шаблон
-// 	strId := ctx.PostForm("chat_id")
-// 	id, err := strconv.Atoi(strId)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 		})
-// 	}
-// 	// Вызов функции добавления чата в заявку
-// 	err = h.Repository.DeleteChat(uint(id))
-// 	if err != nil && !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-// 		return
-// 	}
-
-// 	// после вызова сразу произойдет обновление страницы
-// 	ctx.Redirect(http.StatusFound, "/chats")
-// }

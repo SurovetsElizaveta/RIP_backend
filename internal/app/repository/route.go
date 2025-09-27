@@ -65,43 +65,54 @@ func (r *Repository) GetRoutesByDistance(minDistance, maxDistance int) ([]ds.Rou
 }
 
 func (r *Repository) GetDraftCount() int64 {
-	var requestID int
-	var count int64
+	var speedRequest ds.SpeedRequest
 	creatorID := 1
-	// пока что мы захардкодили id создателя заявки, в последующем вы сделаете авторизацию и будете получать его из JWT
 
-	err := r.db.Model(&ds.Request{}).Where("creator_id = ? AND status = ?", creatorID, "черновик").Select("request_id").First(&requestID).Error
+	// Ищем черновик
+	err := r.db.Where("creator_id = ? AND status = ?", creatorID, "черновик").First(&speedRequest).Error
 	if err != nil {
-		return 0
+		return 0 // Черновика нет
 	}
 
-	err = r.db.Model(&ds.RequestRoute{}).Where("request_id = ?", requestID).Count(&count).Error
+	// Считаем маршруты в черновике
+	var count int64
+	err = r.db.Model(&ds.RouteSpeedRequest{}).Where("speed_request_id = ?", speedRequest.SpeedRequestID).Count(&count).Error
 	if err != nil {
-		logrus.Println("Error counting records in lists_chats:", err)
+		logrus.Println("Error counting routes in draft:", err)
+		return 0
 	}
 
 	return count
 }
 
-func (r *Repository) GetDraftRequest() (ds.Request, error) {
-	var request ds.Request
+func (r *Repository) GetDraftSpeedRequest() (ds.SpeedRequest, error) {
+	var speedRequest ds.SpeedRequest
 	creatorID := 1
 	// пока что мы захардкодили id создателя заявки, в последующем вы сделаете авторизацию и будете получать его из JWT
 
-	err := r.db.Model(&ds.Request{}).Where("creator_id = ? AND status = ?", creatorID, "черновик").Select("*").First(&request).Error
+	err := r.db.Model(&ds.SpeedRequest{}).Where("creator_id = ? AND status = ?", creatorID, "черновик").Select("*").First(&speedRequest).Error
 	if err != nil {
-		logrus.Println("Error select darft request:", err)
+		logrus.Println("Error select darft speed request:", err)
 	}
 
-	return request, nil
+	return speedRequest, nil
 }
 
-func (r *Repository) GetRoutesByRequestID(requestID int) ([]ds.Route, error) {
+func (r *Repository) GetSpeedRequestByID(speedRequestID int) (ds.SpeedRequest, error) {
+	var speedRequest ds.SpeedRequest
+	err := r.db.First(&speedRequest, speedRequestID).Error
+	if err != nil {
+		return ds.SpeedRequest{}, err
+	}
+	return speedRequest, nil
+}
+
+func (r *Repository) GetRoutesBySpeedRequestID(speedRequestID int) ([]ds.Route, error) {
 	var routes []ds.Route
 
 	err := r.db.Table("routes").Select("routes.*").
-		Joins("INNER JOIN request_routes ON routes.route_id = request_routes.route_id").
-		Where("request_routes.request_id = ?", requestID).
+		Joins("INNER JOIN route_speed_requests ON routes.route_id = route_speed_requests.route_id").
+		Where("route_speed_requests.speed_request_id = ?", speedRequestID).
 		Find(&routes).Error
 
 	if err != nil {
@@ -111,23 +122,23 @@ func (r *Repository) GetRoutesByRequestID(requestID int) ([]ds.Route, error) {
 	return routes, nil
 }
 
-func (r *Repository) GetRequestRoutes(requestID int) ([]ds.RequestRoute, error) {
-	var requestRoutes []ds.RequestRoute
+func (r *Repository) GetSpeedRequestRoutes(speedRequestID int) ([]ds.RouteSpeedRequest, error) {
+	var speedRequestRoutes []ds.RouteSpeedRequest
 
 	err := r.db.
-		Where("request_id = ?", requestID).
-		Find(&requestRoutes).Error
+		Where("speed_request_id = ?", speedRequestID).
+		Find(&speedRequestRoutes).Error
 
-	return requestRoutes, err
+	return speedRequestRoutes, err
 }
 
 func (r *Repository) AddRouteToDraft(routeID int, userID int) error {
-	var draft ds.Request
+	var draft ds.SpeedRequest
 	err := r.db.Where("creator_id = ? AND status = ?", userID, "черновик").First(&draft).Error
 
 	if err != nil {
 		// Создаем новый черновик если ещё нет
-		draft = ds.Request{
+		draft = ds.SpeedRequest{
 			CreatorID:      userID,
 			Status:         "черновик",
 			CreationDate:   time.Now(),
@@ -142,8 +153,8 @@ func (r *Repository) AddRouteToDraft(routeID int, userID int) error {
 	}
 
 	// Проверяем, не добавлен ли уже маршрут
-	var existingRoute ds.RequestRoute
-	err = r.db.Where("request_id = ? AND route_id = ?", draft.RequestID, routeID).First(&existingRoute).Error
+	var existingRoute ds.RouteSpeedRequest
+	err = r.db.Where("speed_request_id = ? AND route_id = ?", draft.SpeedRequestID, routeID).First(&existingRoute).Error
 	if err == nil {
 		return fmt.Errorf("маршрут уже добавлен в заявку")
 	}
@@ -166,39 +177,29 @@ func (r *Repository) AddRouteToDraft(routeID int, userID int) error {
 	)
 
 	// Добавляем маршрут в заявку с рассчитанной скоростью
-	requestRoute := ds.RequestRoute{
-		RequestID:   draft.RequestID,
-		RouteID:     routeID,
-		ArrivalDate: arrivalDate,
-		ShipSpeed:   shipSpeed, // используем рассчитанную скорость
+	speedRequestRoute := ds.RouteSpeedRequest{
+		SpeedRequestID: draft.SpeedRequestID,
+		RouteID:        routeID,
+		ArrivalDate:    arrivalDate,
+		ShipSpeed:      shipSpeed, // используем рассчитанную скорость
 	}
 
-	return r.db.Create(&requestRoute).Error
+	return r.db.Create(&speedRequestRoute).Error
 }
 
-// func (r *Repository) DeleteDraftRequest(requestID int) error {
-// 	err := r.db.Model(&ds.Request{}).Where("request_id = ?", requestID).UpdateColumn("status", "deleted").Error
-// 	fmt.Println(requestID)
-// 	if err != nil {
-// 		return fmt.Errorf("ошибка при удалении чата с id %d: %w", requestID, err)
-// 	}
-
-// 	return nil
-// }
-
-func (r *Repository) DeleteDraftRequest(requestID int) error {
+func (r *Repository) DeleteDraftSpeedRequest(speedRequestID int) error {
 	// SQL запрос для обновления статуса заявки на "deleted"
-	query := "UPDATE requests SET status = 'удалена' WHERE request_id = $1"
+	query := "UPDATE speed_requests SET status = 'удалена' WHERE speed_request_id = $1"
 
 	// Выполняем SQL запрос
-	result := r.db.Exec(query, requestID)
+	result := r.db.Exec(query, speedRequestID)
 	if result.Error != nil {
-		return fmt.Errorf("ошибка при удалении заявки с id %d: %w", requestID, result.Error)
+		return fmt.Errorf("ошибка при удалении заявки с id %d: %w", speedRequestID, result.Error)
 	}
 
 	// Проверяем, была ли обновлена хотя бы одна строка
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("заявка с id %d не найдена", requestID)
+		return fmt.Errorf("заявка с id %d не найдена", speedRequestID)
 	}
 
 	return nil

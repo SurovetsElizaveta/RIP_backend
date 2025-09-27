@@ -19,8 +19,8 @@ func main() {
 	// Migrate the schema
 	err = db.AutoMigrate(
 		&ds.Route{},
-		&ds.Request{},
-		&ds.RequestRoute{},
+		&ds.SpeedRequest{},
+		&ds.RouteSpeedRequest{},
 		&ds.Users{},
 	)
 	if err != nil {

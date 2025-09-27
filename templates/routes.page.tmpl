@@ -8,15 +8,25 @@
     <a href="/routes"><img src="http://127.0.0.1:9000/routes/main_ship.svg" alt="routes"></a>
 </header>
 <body>
-    <div class="request-link {{ if eq .draftCount 0 }}empty-request{{ end }}">
-        <a href="/draft">
-            <img src="{{ if eq .draftCount 0 }}http://127.0.0.1:9000/routes/sea_request_null.svg{{ else }}http://127.0.0.1:9000/routes/sea_request.svg{{ end }}" 
+    {{ if .speedRequest.SpeedRequestID }}
+    <div class="request-link">
+        <a href="/draft/{{ .speedRequest.SpeedRequestID }}">
+            <img src="http://127.0.0.1:9000/routes/sea_request.svg" 
              alt="request" class="request-icon">
         </a>
-        <div class="request-counter {{ if eq .draftCount 0 }}empty-request{{ end }}">
+        <div class="request-counter">
             <h4>{{ .draftCount }}</h4>
         </div>
     </div>
+    {{ else }}
+    <div class="request-link empty-request">
+        <img src="http://127.0.0.1:9000/routes/sea_request_null.svg" 
+         alt="request" class="request-icon">
+        <div class="request-counter empty-request">
+            <h4>{{ .draftCount }}</h4>
+        </div>
+    </div>
+    {{ end }}
     <div class="main-space">
         <form class="distance-filter-bar" action="/routes" method="GET">
             <h4>Расстояние от</h4>

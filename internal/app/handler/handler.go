@@ -21,9 +21,9 @@ func NewHandler(r *repository.Repository) *Handler {
 func (h *Handler) RegisterHandler(router *gin.Engine) {
 	router.GET("/routes", h.GetAllRoutes)
 	router.GET("/routes/:route_id", h.GetRouteById)
-	router.GET("/draft", h.GetDraftRequest)
+	router.GET("/draft/:speed_request_id", h.GetDraftByID)
 	router.POST("/add-to-draft/:route_id", h.AddToDraft)
-	router.POST("/delete-draft/:request_id", h.DeleteDraftRequest)
+	router.POST("/delete-draft/:speed_request_id", h.DeleteDraftSpeedRequest)
 }
 
 // RegisterStatic То же самое, что и с маршрутами, регистрируем статику
