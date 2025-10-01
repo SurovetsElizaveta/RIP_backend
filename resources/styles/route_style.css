@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    font-family: Inter;
+    text-decoration: none;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h3 {
+    font-size: 20px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h4 {
+    font-size: 14px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h5 {
+    font-size: 12px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+body{
+    background: #F3F3F3;
+}
+
+header {
+    height: 60px;
+    width: 100%;
+    background-color: #09388A;
+    margin: 0px;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content:space-between;
+}
+
+header img {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.request-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 10px;
+    height: 100%;
+}
+
+header h4 {
+    color: #FFFFFF;
+    font-weight: Bold;
+    display: inline;
+    align-items: center;
+    justify-items:center;
+}
+
+.request-counter {
+    background-color: #FE991F;
+    border-radius: 20px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.request-counter h4 {
+    color: #001E42;
+    font-size: 14px;
+    font-weight: Bold;
+}
+
+.main-space {
+    margin: 40px 200px 40px 200px;
+    display: block;
+}
+
+.card {
+    width: 100%;
+    height: 280px;
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 20px;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 10px;
+}
+
+.card-img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+}

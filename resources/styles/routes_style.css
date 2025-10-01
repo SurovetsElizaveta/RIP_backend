@@ -1,0 +1,248 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+*{
+    margin: 0;
+    padding: 0;
+    font-family: Inter;
+    text-decoration: none;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h2 {
+    font-size: 22px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h3 {
+    font-size: 20px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h4 {
+    font-size: 14px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+h5 {
+    font-size: 12px;
+    font-weight: 400;
+    color: #001E42;
+}
+
+body{
+    background: #F3F3F3;
+}
+
+header {
+    height: 60px;
+    width: 100%;
+    background-color: #09388A;
+    margin: 0px;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content:space-between;
+}
+
+header img {
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+header h4 {
+    color: #FFFFFF;
+    font-weight: Bold;
+    display: inline;
+    align-items: center;
+    justify-items:center;
+}
+
+.request-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    background-color: #09388A;
+    position: absolute;
+    top: 70px;
+    right: 4px;
+    z-index: 10; 
+}
+
+.request-counter {
+    background-color: #09388A;
+    border-radius: 20px;
+    border: 1px solid #FFFFFF;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    z-index: 11; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.request-counter h4 {
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: Bold;
+}
+
+.request-link.empty-request {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    width: 60px;
+    height: 60px;
+    background-color: #FFFFFF;
+    border: 1px solid #09388A;
+    position: absolute;
+    top: 70;
+    right: 4;
+    z-index: 10; 
+}
+
+.request-counter.empty-request {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    border: 1px solid #09388A;
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 4;
+    right: 2;
+    z-index: 10; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.request-counter.empty-request h4 {
+    color: #09388A;
+    font-size: 14px;
+    font-weight: Bold;
+}
+
+.main-space {
+    margin: 0px 180px 0px 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.distance-filter-bar {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0px 20px 0px;
+}
+
+.distance-filter-input {
+    width: 80px;
+    height: 40px;
+    border: #FFFFFF;
+    padding-left: 10px;
+}
+
+.distance-filter-btn {
+    padding: 10px 24px 10px 24px;
+    background-color: #FE991F;
+    border: transparent;
+    font-size: 14px;
+    font-weight: 450;
+    color: #FFFFFF;
+}
+
+.distance-filter-btn:hover {
+    background-color: transparent;
+    border: 1px solid #FE991F;
+    color: #FE991F;  
+    cursor: pointer; 
+}
+
+.cards {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+}
+
+.card {
+    width: 350px;
+    height: 200px;
+    background-color: #FFFFFF;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: auto 140px;
+    gap: 10px;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content:space-between;
+}
+
+.card-img {
+    width: 140px;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card:hover {
+    background-color: #09388A;
+    cursor: pointer;
+}
+
+.card:hover .card-info h4 {
+    color: #FFFFFF !important; /* Белый цвет для ссылок */
+}
+
+.card:hover .card-info h5 {
+    color: #FFFFFF !important; /* Белый цвет для заголовков */
+}
+
+.add-to-draft-btn {
+    background-color: #FE991F;
+    border: none;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 16px 24px 16px 24px;
+    cursor: pointer;
+}
+
+.add-to-draft-btn:hover {
+    background-color: transparent;
+    border: 1px solid #FE991F;
+    color: #FE991F;
+}
+
+.card {
+    position: relative;
+    overflow: hidden;
+}
