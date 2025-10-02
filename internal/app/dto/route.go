@@ -29,6 +29,10 @@ type UpdateRoute struct {
 	Status      *string `json:"status" binding:"omitempty,oneof=активен неактивен"`
 }
 
+type AddToDraftRequest struct {
+	RouteID int `json:"route_id" binding:"required"`
+}
+
 func (r *CreateRoute) Validate() error {
 	if r.Title == "" {
 		return errors.New("title is required")

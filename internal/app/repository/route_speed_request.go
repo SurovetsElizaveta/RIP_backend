@@ -44,10 +44,6 @@ func (r *Repository) ValidateSpeedRequestAccess(speedRequestID uint, userID uint
 		return errors.New("доступ запрещен")
 	}
 
-	if speedRequest.Status != ds.StatusDraft {
-		return errors.New("можно редактировать только черновики")
-	}
-
 	return nil
 }
 

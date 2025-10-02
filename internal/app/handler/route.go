@@ -137,7 +137,7 @@ func (h *Handler) CreateRoute(ctx *gin.Context) {
 		return
 	}
 
-	route := ds.Route{
+	route := &ds.Route{
 		Title:       request.Title,
 		Distance:    request.Distance,
 		Description: request.Description,
@@ -207,7 +207,7 @@ func (h *Handler) UpdateRoute(ctx *gin.Context) {
 }
 
 func (h *Handler) DeleteRoute(ctx *gin.Context) {
-	routeID, err := strconv.Atoi(ctx.Param("id"))
+	routeID, err := strconv.Atoi(ctx.Param("route_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID маршрута"))
 		return
@@ -218,28 +218,57 @@ func (h *Handler) DeleteRoute(ctx *gin.Context) {
 		return
 	}
 
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"message": "Услуга успешно удалена",
-	// })
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Услуга успешно удалена",
+	})
+}
+
+func (h *Handler) AddToDraft(ctx *gin.Context) {
+	// Получаем ID маршрута из URL параметра
+	routeIDStr := ctx.Param("route_id")
+	routeID, err := strconv.Atoi(routeIDStr)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID маршрута"))
+		return
+	}
+
+	currentUserID := uint(1) // TODO: заменить на получение из авторизации
+
+	// Добавляем маршрут в черновик
+	speedRequestID, err := h.Repository.AddRouteToDraft(uint(routeID), currentUserID)
+	if err != nil {
+		if err.Error() == "маршрут не найден" {
+			h.errorHandler(ctx, http.StatusNotFound, err)
+		} else if err.Error() == "маршрут уже добавлен в заявку" {
+			h.errorHandler(ctx, http.StatusBadRequest, err)
+		} else {
+			logrus.Errorf("Ошибка добавления в черновик: %v", err)
+			h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("ошибка добавления в заявку"))
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":          "Услуга успешно добавлена в заявку",
+		"speed_request_id": speedRequestID,
+	})
 }
 
 func (h *Handler) UploadRouteImage(ctx *gin.Context) {
 	// Получаем ID маршрута из URL параметра
-	routeIDStr := ctx.Param("route_id") // обратите внимание на параметр :route_id
+	routeIDStr := ctx.Param("route_id")
 	routeID, err := strconv.ParseUint(routeIDStr, 10, 32)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID маршрута"))
 		return
 	}
 
-	// Получаем файл из формы
 	file, err := ctx.FormFile("image")
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("файл изображения обязателен"))
 		return
 	}
 
-	// Валидация файла
 	if err := h.validateImageFile(file); err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
@@ -273,10 +302,11 @@ func (h *Handler) validateImageFile(file *multipart.FileHeader) error {
 		".gif":  true,
 		".webp": true,
 		".bmp":  true,
+		".svg":  true,
 	}
 
 	if !allowedExtensions[ext] {
-		return fmt.Errorf("разрешены только файлы с расширениями: jpg, jpeg, png, gif, webp, bmp")
+		return fmt.Errorf("разрешены только файлы с расширениями: jpg, jpeg, png, gif, webp, bmp, svg")
 	}
 
 	// Проверяем MIME type (базовая проверка по расширению)
@@ -301,6 +331,8 @@ func (h *Handler) validateImageFile(file *multipart.FileHeader) error {
 		mimeType = "image/webp"
 	case ".bmp":
 		mimeType = "image/bmp"
+	case ".svg":
+		mimeType = "image/svg"
 	default:
 		return fmt.Errorf("неподдерживаемый формат изображения")
 	}

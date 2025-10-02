@@ -15,7 +15,7 @@ type RemoveRouteSpeedRequest struct {
 }
 
 type UpdateRouteSpeedRequest struct {
-	SpeedRequestID int        `json:"speed_request_id" binding:"required"`
-	RouteID        int        `json:"route_id" binding:"required"`
+	SpeedRequestID int        `json:"speed_request_id"`
+	RouteID        int        `json:"route_id"`
 	ArrivalDate    *time.Time `json:"arrival_date,omitempty"`
 }

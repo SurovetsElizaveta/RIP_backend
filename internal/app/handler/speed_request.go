@@ -117,7 +117,6 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	// Проверяем, что заявка не удалена и не черновик
 	if speedRequest.Status == ds.StatusDeleted {
 		h.errorHandler(ctx, http.StatusNotFound, fmt.Errorf("заявка не найдена"))
 		return

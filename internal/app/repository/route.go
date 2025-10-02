@@ -5,12 +5,49 @@ import (
 	"fmt"
 	"mime/multipart"
 	"rip/internal/app/ds"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func (r *Repository) CreateRoute(route ds.Route) error {
+func (r *Repository) GetAllRoutes() ([]ds.Route, error) {
+	var routes []ds.Route
+	err := r.db.Find(&routes).Error
+	if err != nil {
+		return nil, err
+	}
+	return routes, nil
+}
+
+func (r *Repository) GetRoutesByDistance(minDistance, maxDistance int) ([]ds.Route, error) {
+	var routes []ds.Route
+	err := r.db.Find(&routes).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var result []ds.Route
+	for _, route := range routes {
+		if route.Distance >= minDistance && route.Distance <= maxDistance {
+			result = append(result, route)
+		}
+	}
+
+	return result, nil
+}
+
+func (r *Repository) GetRouteByID(route_id uint) (ds.Route, error) {
+	var route ds.Route
+	err := r.db.Where("route_id = ? AND status = ?", route_id, "действует").First(&route).Error
+	if err != nil {
+		logrus.Println("Error select route by id:", err)
+	}
+
+	return route, nil
+}
+
+func (r *Repository) CreateRoute(route *ds.Route) error {
 	if route.Title == "" {
 		return errors.New("название маршрута не может быть пустым")
 	}
@@ -100,42 +137,6 @@ func (r *Repository) DeleteRoute(routeId uint) error {
 	return nil
 }
 
-func (r *Repository) GetAllRoutes() ([]ds.Route, error) {
-	var routes []ds.Route
-	err := r.db.Find(&routes).Error
-	if err != nil {
-		return nil, err
-	}
-	return routes, nil
-}
-
-func (r *Repository) GetRouteByID(route_id uint) (ds.Route, error) {
-	var route ds.Route
-	err := r.db.Where("route_id = ? AND status = ?", route_id, "действует").First(&route).Error
-	if err != nil {
-		logrus.Println("Error select route by id:", err)
-	}
-
-	return route, nil
-}
-
-func (r *Repository) GetRoutesByDistance(minDistance, maxDistance int) ([]ds.Route, error) {
-	var routes []ds.Route
-	err := r.db.Find(&routes).Error
-	if err != nil {
-		return nil, err
-	}
-
-	var result []ds.Route
-	for _, route := range routes {
-		if route.Distance >= minDistance && route.Distance <= maxDistance {
-			result = append(result, route)
-		}
-	}
-
-	return result, nil
-}
-
 func (r *Repository) deleteImageFromMinio(imageURL string) error {
 	if r.minio == nil {
 		return errors.New("minio клиент не инициализирован")
@@ -175,6 +176,77 @@ func (r *Repository) UploadRouteImage(routeId uint, file *multipart.FileHeader) 
 	}
 
 	return nil
+}
+
+func (r *Repository) AddRouteToDraft(routeID uint, userID uint) (uint, error) {
+	var route ds.Route
+	if err := r.db.First(&route, routeID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, errors.New("маршрут не найден")
+		}
+		return 0, err
+	}
+
+	draft, err := r.getOrCreateDraft(userID)
+	if err != nil {
+		return 0, err
+	}
+
+	var existingRoute ds.RouteSpeedRequest
+	err = r.db.Where("speed_request_id = ? AND route_id = ?", draft.SpeedRequestID, routeID).First(&existingRoute).Error
+	if err == nil {
+		return 0, errors.New("маршрут уже добавлен в заявку")
+	}
+
+	// // 4. Рассчитываем дату прибытия и скорость (опционально)
+	// arrivalDate := time.Now().AddDate(0, 0, 7) // через 7 дней по умолчанию
+	// shipSpeed := r.calculateShipSpeed(
+	// 	draft.DepartureDate,
+	// 	arrivalDate,
+	// 	route.Delay,
+	// 	route.Distance,
+	// )
+
+	routeSpeedRequest := ds.RouteSpeedRequest{
+		SpeedRequestID: draft.SpeedRequestID,
+		RouteID:        routeID,
+		ArrivalDate:    time.Time{},
+		ShipSpeed:      0,
+	}
+
+	if err := r.db.Create(&routeSpeedRequest).Error; err != nil {
+		return 0, fmt.Errorf("ошибка добавления маршрута в заявку: %w", err)
+	}
+
+	logrus.Infof("Маршрут %d добавлен в заявку-черновик %d", routeID, draft.SpeedRequestID)
+	return draft.SpeedRequestID, nil
+}
+
+func (r *Repository) getOrCreateDraft(userID uint) (*ds.SpeedRequest, error) {
+	var draft ds.SpeedRequest
+
+	err := r.db.Where("creator_id = ? AND status = ?", userID, ds.StatusDraft).First(&draft).Error
+	if err == nil {
+		return &draft, nil // Черновик найден
+	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err // Другая ошибка
+	}
+
+	newDraft := ds.SpeedRequest{
+		CreatorID:     userID,
+		Status:        ds.StatusDraft,
+		CreationDate:  time.Now(),
+		DepartureDate: time.Now().AddDate(0, 0, 1), // завтра по умолчанию
+	}
+
+	if err := r.db.Create(&newDraft).Error; err != nil {
+		return nil, fmt.Errorf("ошибка создания черновика: %w", err)
+	}
+
+	logrus.Infof("Создан новый черновик заявки ID: %d для пользователя %d", newDraft.SpeedRequestID, userID)
+	return &newDraft, nil
 }
 
 // #############################################################

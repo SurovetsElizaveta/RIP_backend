@@ -57,7 +57,6 @@ func (r *Repository) GetSpeedRequestsWithFilters(status string, dateFrom, dateTo
 	return speedRequests, err
 }
 
-// repository/speedrequest_repository.go
 func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint) (ds.SpeedRequest, []ds.RouteSpeedRequest, error) {
 	// Получаем заявку
 	var speedRequest ds.SpeedRequest
@@ -204,10 +203,6 @@ func (r *Repository) DeleteSpeedRequest(speedRequestID uint, userID uint) error 
 
 	if speedRequest.CreatorID != userID {
 		return errors.New("доступ запрещен")
-	}
-
-	if speedRequest.Status != ds.StatusDraft {
-		return errors.New("можно удалять только черновики")
 	}
 
 	updates := map[string]interface{}{

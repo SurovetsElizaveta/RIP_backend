@@ -27,6 +27,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.PUT("/routes/:route_id", h.UpdateRoute)
 	api.DELETE("/routes/:route_id", h.DeleteRoute)
 	api.POST("/routes/:route_id/image", h.UploadRouteImage)
+	api.POST("/draft/addroute/:route_id", h.AddToDraft)
 
 	// SpeedRequests
 	api.GET("/speedrequests/draft", h.GetDraftInfo)
