@@ -25,7 +25,7 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 	}
 
 	if err := h.Repository.RemoveRouteFromSpeedRequest(uint(request.SpeedRequestID), uint(request.RouteID)); err != nil {
-		if err.Error() == "услуга не найдена в заявке" {
+		if err.Error() == "маршрут не найден в заявке" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else {
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -34,7 +34,7 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Услуга успешно удалена из заявки",
+		"message": "Маршрут успешно удален из заявки",
 	})
 }
 

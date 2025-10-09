@@ -58,7 +58,6 @@ func (r *Repository) GetSpeedRequestsWithFilters(status string, dateFrom, dateTo
 }
 
 func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint) (ds.SpeedRequest, []ds.RouteSpeedRequest, error) {
-	// Получаем заявку
 	var speedRequest ds.SpeedRequest
 	err := r.db.
 		Preload("Creator").
@@ -72,7 +71,6 @@ func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint) (ds.SpeedReq
 		return ds.SpeedRequest{}, nil, err
 	}
 
-	// Получаем маршруты заявки отдельным запросом
 	var routes []ds.RouteSpeedRequest
 	err = r.db.
 		Preload("Route").
@@ -179,7 +177,7 @@ func (r *Repository) CompleteSpeedRequest(speedRequestID uint, moderatorID uint,
 
 	if status == ds.StatusCompleted {
 		if err := r.calculateShipSpeedRequest(speedRequest); err != nil {
-			return fmt.Errorf("ошибка расчета бизнес-логики: %w", err)
+			return fmt.Errorf("ошибка расчета скорости контейнеровоза: %w", err)
 		}
 	}
 

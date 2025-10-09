@@ -21,7 +21,7 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 	var err error
 
 	minDistanceStr := ctx.Query("min_distance")
-	maxDistanceStr := ctx.Query("max_distance") // получаем значение из поля поиска
+	maxDistanceStr := ctx.Query("max_distance")
 	if minDistanceStr == "" && maxDistanceStr == "" {
 		routes, err = h.Repository.GetAllRoutes()
 		if err != nil {
@@ -30,7 +30,6 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 			return
 		}
 	} else {
-		// Преобразуем параметры в числа
 		var minDistance, maxDistance int
 		var err error
 
@@ -46,11 +45,10 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 			maxDistance, err = strconv.Atoi(maxDistanceStr)
 			if err != nil {
 				logrus.Error("Ошибка преобразования max_distance:", err)
-				maxDistance = 10000 // Большое значение по умолчанию
+				maxDistance = 10000
 			}
 		}
 
-		// Если задан только один параметр, устанавливаем разумные значения по умолчанию
 		if minDistanceStr == "" {
 			minDistance = 0
 		}
@@ -71,36 +69,6 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	// var speedDraft ds.SpeedRequest
-
-	// speedDraft, err := h.Repository.GetDraftByUserID(uint(1))
-	// if err != nil {
-	// 	logrus.Error(err)
-	// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	// 	return
-	// }
-
-	// Преобразуем обратно в строки для отображения в форме
-	// minDistanceValue := ctx.Query("min_distance")
-	// maxDistanceValue := ctx.Query("max_distance")
-
-	// var draftCount int64 = 0
-	// if speedDraft != (ds.SpeedRequest{}) {
-	// 	draftCount, err = h.Repository.GetSpeedRequestRoutesCount(speedDraft.SpeedRequestID)
-	// 	if err != nil {
-	// 		logrus.Error("Ошибка получения количества услуг в черновике:", err)
-	// 		// Продолжаем выполнение с draftCount = 0
-	// 	}
-	// }
-
-	// ctx.HTML(http.StatusOK, "routes.page.tmpl", gin.H{
-	// 	"routes":       routes,
-	// 	"minDistance":  minDistanceValue,
-	// 	"maxDistance":  maxDistanceValue,
-	// 	"draftCount":   draftCount,
-	// 	"speedRequest": &speedDraft,
-	// })
 
 	ctx.JSON(http.StatusOK, routes)
 }
@@ -126,7 +94,6 @@ func (h *Handler) GetRouteByID(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, route)
-	// ctx.HTML(http.StatusOK, "route.page.tmpl", route)
 }
 
 func (h *Handler) CreateRoute(ctx *gin.Context) {
@@ -143,18 +110,12 @@ func (h *Handler) CreateRoute(ctx *gin.Context) {
 		Description: request.Description,
 		Delay:       request.Delay,
 		Status:      "действует",
-		ImageURL:    "",
 	}
 
 	if err := h.Repository.CreateRoute(route); err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
-
-	// ctx.JSON(http.StatusCreated, gin.H{
-	// 	"message": "Услуга успешно создана",
-	// 	"id":      route.RouteID,
-	// })
 
 	ctx.JSON(http.StatusOK, route)
 }
@@ -199,10 +160,6 @@ func (h *Handler) UpdateRoute(ctx *gin.Context) {
 		return
 	}
 
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"message": "Услуга успешно обновлена",
-	// })
-
 	ctx.JSON(http.StatusOK, existingRoute)
 }
 
@@ -219,12 +176,11 @@ func (h *Handler) DeleteRoute(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Услуга успешно удалена",
+		"message": "Маршрут успешно удален",
 	})
 }
 
 func (h *Handler) AddToDraft(ctx *gin.Context) {
-	// Получаем ID маршрута из URL параметра
 	routeIDStr := ctx.Param("route_id")
 	routeID, err := strconv.Atoi(routeIDStr)
 	if err != nil {
@@ -232,9 +188,8 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 		return
 	}
 
-	currentUserID := uint(1) // TODO: заменить на получение из авторизации
+	currentUserID := uint(1)
 
-	// Добавляем маршрут в черновик
 	speedRequestID, err := h.Repository.AddRouteToDraft(uint(routeID), currentUserID)
 	if err != nil {
 		if err.Error() == "маршрут не найден" {
@@ -249,13 +204,12 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":          "Услуга успешно добавлена в заявку",
+		"message":          "Маршрут успешно добавлен в заявку",
 		"speed_request_id": speedRequestID,
 	})
 }
 
 func (h *Handler) UploadRouteImage(ctx *gin.Context) {
-	// Получаем ID маршрута из URL параметра
 	routeIDStr := ctx.Param("route_id")
 	routeID, err := strconv.ParseUint(routeIDStr, 10, 32)
 	if err != nil {
@@ -274,7 +228,6 @@ func (h *Handler) UploadRouteImage(ctx *gin.Context) {
 		return
 	}
 
-	// Загружаем изображение через репозиторий
 	if err := h.Repository.UploadRouteImage(uint(routeID), file); err != nil {
 		logrus.Errorf("Ошибка загрузки изображения: %v", err)
 		h.errorHandler(ctx, http.StatusInternalServerError, fmt.Errorf("ошибка загрузки изображения: %v", err))
@@ -287,13 +240,11 @@ func (h *Handler) UploadRouteImage(ctx *gin.Context) {
 }
 
 func (h *Handler) validateImageFile(file *multipart.FileHeader) error {
-	// Проверяем размер файла (максимум 5MB)
-	const maxSize = 5 << 20 // 5MB
+	const maxSize = 5 << 20
 	if file.Size > maxSize {
 		return fmt.Errorf("размер файла не должен превышать 5MB")
 	}
 
-	// Проверяем расширение файла
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	allowedExtensions := map[string]bool{
 		".jpg":  true,
@@ -309,16 +260,15 @@ func (h *Handler) validateImageFile(file *multipart.FileHeader) error {
 		return fmt.Errorf("разрешены только файлы с расширениями: jpg, jpeg, png, gif, webp, bmp, svg")
 	}
 
-	// Проверяем MIME type (базовая проверка по расширению)
 	allowedMimeTypes := map[string]bool{
 		"image/jpeg": true,
 		"image/png":  true,
 		"image/gif":  true,
 		"image/webp": true,
 		"image/bmp":  true,
+		"image/svg":  true,
 	}
 
-	// Определяем MIME type по расширению
 	var mimeType string
 	switch ext {
 	case ".jpg", ".jpeg":
@@ -343,94 +293,3 @@ func (h *Handler) validateImageFile(file *multipart.FileHeader) error {
 
 	return nil
 }
-
-// #####################################################
-
-// func (h *Handler) GetDraftByID(ctx *gin.Context) {
-// 	speedRequestIDStr := ctx.Param("speed_request_id")
-// 	speedRequestID, err := strconv.Atoi(speedRequestIDStr)
-// 	if err != nil {
-// 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
-// 		return
-// 	}
-
-// 	// Используем новый метод репозитория для поиска по ID
-// 	speedRequest, err := h.Repository.GetSpeedRequestByID(speedRequestID)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": "Заявка не найдена: " + err.Error(),
-// 		})
-// 		logrus.Error(err)
-// 		return
-// 	}
-
-// 	routes, err := h.Repository.GetRoutesBySpeedRequestID(speedRequest.SpeedRequestID)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 		})
-// 		logrus.Error(err)
-// 		return
-// 	}
-
-// 	speedRequestRoutes, err := h.Repository.GetSpeedRequestRoutes(speedRequest.SpeedRequestID)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 		})
-// 		logrus.Error(err)
-// 		return
-// 	}
-
-// 	speedRequestRoutesMap := make(map[int]ds.RouteSpeedRequest)
-// 	for _, rr := range speedRequestRoutes {
-// 		speedRequestRoutesMap[rr.RouteID] = rr
-// 	}
-
-// 	ctx.HTML(http.StatusOK, "draft.page.tmpl", gin.H{
-// 		"speedRequest":          speedRequest,
-// 		"routes":                routes,
-// 		"speedRequestRoutesMap": speedRequestRoutesMap,
-// 	})
-// }
-
-// func (h *Handler) AddToDraft(ctx *gin.Context) {
-// 	routeIDStr := ctx.Param("route_id")
-// 	routeID, err := strconv.Atoi(routeIDStr)
-// 	if err != nil {
-// 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID маршрута"))
-// 		return
-// 	}
-
-// 	// TODO: Получить userID из сессии (пока хардкод)
-// 	userID := 1
-
-// 	err = h.Repository.AddRouteToDraft(routeID, userID)
-// 	if err != nil {
-// 		// Перенаправляем с сообщением об ошибке
-// 		ctx.Redirect(http.StatusSeeOther, "/routes?error="+url.QueryEscape(err.Error()))
-// 		return
-// 	}
-
-// 	// Перенаправляем с сообщением об успехе
-// 	ctx.Redirect(http.StatusSeeOther, "/routes")
-// }
-
-// func (h *Handler) DeleteDraftSpeedRequest(ctx *gin.Context) {
-// 	// считываем значение из формы, которую мы добавим в наш шаблон
-// 	strSpeedRequestId := ctx.Param("speed_request_id")
-// 	speedRequestID, err := strconv.Atoi(strSpeedRequestId)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{
-// 			"error": err.Error(),
-// 		})
-// 	}
-// 	// Вызов функции добавления чата в заявку
-// 	err = h.Repository.DeleteDraftSpeedRequest(int(speedRequestID))
-// 	if err != nil && !strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-// 		return
-// 	}
-
-// 	// после вызова сразу произойдет обновление страницы
-// 	ctx.Redirect(http.StatusFound, "/routes")
-// }

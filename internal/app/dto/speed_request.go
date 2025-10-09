@@ -17,6 +17,36 @@ type SpeedRequest struct {
 	Status         string    `json:"status"`
 }
 
+type SpeedRequestResponse struct {
+	SpeedRequestID uint      `json:"id"`
+	DepartureDate  time.Time `json:"departure_date"`
+	CreationDate   time.Time `json:"creation_date"`
+	FormationDate  time.Time `json:"formation_date"`
+	CompletionDate time.Time `json:"completion_date"`
+	Status         string    `json:"status"`
+}
+
+type SpeedRequestDetailedResponse struct {
+	SpeedRequest SpeedRequest            `json:"speed_request"`
+	RouteReq     []RouteSpeedRequestInfo `json:"route_req"`
+	Routes       []RouteInfo             `json:"routes"`
+	Result       int                     `json:"result"`
+}
+
+type RouteSpeedRequestInfo struct {
+	ArrivalDate time.Time `json:"arrival_date"`
+	ShipSpeed   int       `json:"ship_speed"`
+}
+
+type RouteInfo struct {
+	RouteID     uint   `json:"route_id"`
+	Title       string `json:"title"`
+	Distance    int    `json:"distance"`
+	Description string `json:"description"`
+	ImageURL    string `json:"image_url"`
+	Status      string `json:"status"`
+}
+
 type UpdateSpeedRequest struct {
 	DepartureDate *time.Time `json:"departure_date" binding:"omitempty"`
 }

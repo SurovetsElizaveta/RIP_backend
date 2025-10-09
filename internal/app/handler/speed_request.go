@@ -42,7 +42,6 @@ func (h *Handler) GetDraftInfo(ctx *gin.Context) {
 }
 
 func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
-	// Получаем параметры запроса
 	status := ctx.Query("status")
 	dateFromStr := ctx.Query("date_from")
 	dateToStr := ctx.Query("date_to")
@@ -50,7 +49,6 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 	var dateFrom, dateTo *time.Time
 	var err error
 
-	// Парсим date_from
 	if dateFromStr != "" {
 		parsedDateFrom, err := time.Parse("2006-01-02", dateFromStr)
 		if err != nil {
@@ -60,7 +58,6 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 		dateFrom = &parsedDateFrom
 	}
 
-	// Парсим date_to
 	if dateToStr != "" {
 		parsedDateTo, err := time.Parse("2006-01-02", dateToStr)
 		if err != nil {
@@ -70,13 +67,11 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 		dateTo = &parsedDateTo
 	}
 
-	// Валидация дат
 	if dateFrom != nil && dateTo != nil && dateFrom.After(*dateTo) {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("date_from не может быть после date_to"))
 		return
 	}
 
-	// Вызываем репозиторий с простыми параметрами
 	speedRequests, err := h.Repository.GetSpeedRequestsWithFilters(status, dateFrom, dateTo)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -122,30 +117,41 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	// Формируем ответ вручную без объединяющей структуры
-	response := gin.H{
-		"id":              speedRequest.SpeedRequestID,
-		"departure_date":  speedRequest.DepartureDate,
-		"creation_date":   speedRequest.CreationDate,
-		"formation_date":  speedRequest.FormationDate,
-		"completion_date": speedRequest.CompletionDate,
-		"status":          speedRequest.Status,
-		"creator_login":   speedRequest.Creator.Login,
-		"moderator_login": getModeratorLogin(speedRequest.Moderator),
-		"routes":          make([]gin.H, len(routes)),
+	routeReq := make([]dto.RouteSpeedRequestInfo, len(routes))
+	routeInfos := make([]dto.RouteInfo, len(routes))
+
+	speedReq := dto.SpeedRequest{
+		SpeedRequestID: speedRequest.SpeedRequestID,
+		DepartureDate:  speedRequest.DepartureDate,
+		CreationDate:   speedRequest.CreationDate,
+		FormationDate:  speedRequest.FormationDate,
+		CompletionDate: speedRequest.CompletionDate,
+		CreatorLogin:   speedRequest.Creator.Login,
+		ModeratorLogin: speedRequest.Moderator.Login,
+		Status:         speedRequest.Status,
 	}
 
-	// Добавляем маршруты в ответ
 	for i, route := range routes {
-		response["routes"].([]gin.H)[i] = gin.H{
-			"route_id":     route.RouteID,
-			"title":        route.Route.Title,
-			"distance":     route.Route.Distance,
-			"description":  route.Route.Description,
-			"image_url":    route.Route.ImageURL,
-			"arrival_date": route.ArrivalDate,
-			"ship_speed":   route.ShipSpeed,
+		routeReq[i] = dto.RouteSpeedRequestInfo{
+			ArrivalDate: route.ArrivalDate,
+			ShipSpeed:   route.ShipSpeed,
 		}
+
+		routeInfos[i] = dto.RouteInfo{
+			RouteID:     route.Route.RouteID,
+			Title:       route.Route.Title,
+			Distance:    route.Route.Distance,
+			Description: route.Route.Description,
+			ImageURL:    route.Route.ImageURL,
+			Status:      route.Route.Status,
+		}
+	}
+
+	response := dto.SpeedRequestDetailedResponse{
+		SpeedRequest: speedReq,
+		RouteReq:     routeReq,
+		Routes:       routeInfos,
+		Result:       len(routes),
 	}
 
 	ctx.JSON(http.StatusOK, response)
@@ -177,9 +183,6 @@ func (h *Handler) UpdateSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"message": "Заявка успешно обновлена",
-	// })
 	ctx.JSON(http.StatusOK, request)
 }
 

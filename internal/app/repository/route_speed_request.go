@@ -14,7 +14,7 @@ func (r *Repository) RemoveRouteFromSpeedRequest(speedRequestID uint, routeID ui
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return errors.New("услуга не найдена в заявке")
+		return errors.New("маршрут не найден в заявке")
 	}
 	return nil
 }
