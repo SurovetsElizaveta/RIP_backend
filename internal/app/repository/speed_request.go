@@ -102,8 +102,12 @@ func (r *Repository) UpdateSpeedRequest(speedRequestID uint, userID uint, reques
 	}
 
 	updates := make(map[string]interface{})
-	if request.DepartureDate != nil {
-		updates["departure_date"] = *request.DepartureDate
+	parsedDepartureDate, err := time.Parse("02.01.2006", request.DepartureDate)
+	if err != nil {
+		return err
+	}
+	if parsedDepartureDate != (time.Time{}) {
+		updates["departure_date"] = parsedDepartureDate
 	}
 
 	if len(updates) == 0 {

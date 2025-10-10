@@ -7,23 +7,14 @@ import (
 )
 
 type SpeedRequest struct {
-	SpeedRequestID uint      `json:"id"`
-	DepartureDate  time.Time `json:"departure_date"`
-	CreationDate   time.Time `json:"creation_date"`
-	FormationDate  time.Time `json:"formation_date"`
-	CompletionDate time.Time `json:"completion_date"`
-	CreatorLogin   string    `json:"creator_login"`
-	ModeratorLogin string    `json:"moderator_login,omitempty"`
-	Status         string    `json:"status"`
-}
-
-type SpeedRequestResponse struct {
-	SpeedRequestID uint      `json:"id"`
-	DepartureDate  time.Time `json:"departure_date"`
-	CreationDate   time.Time `json:"creation_date"`
-	FormationDate  time.Time `json:"formation_date"`
-	CompletionDate time.Time `json:"completion_date"`
-	Status         string    `json:"status"`
+	SpeedRequestID uint   `json:"id"`
+	DepartureDate  string `json:"departure_date"`
+	CreationDate   string `json:"creation_date"`
+	FormationDate  string `json:"formation_date"`
+	CompletionDate string `json:"completion_date"`
+	CreatorLogin   string `json:"creator_login"`
+	ModeratorLogin string `json:"moderator_login,omitempty"`
+	Status         string `json:"status"`
 }
 
 type SpeedRequestDetailedResponse struct {
@@ -34,8 +25,8 @@ type SpeedRequestDetailedResponse struct {
 }
 
 type RouteSpeedRequestInfo struct {
-	ArrivalDate time.Time `json:"arrival_date"`
-	ShipSpeed   int       `json:"ship_speed"`
+	ArrivalDate string `json:"arrival_date"`
+	ShipSpeed   int    `json:"ship_speed"`
 }
 
 type RouteInfo struct {
@@ -48,7 +39,7 @@ type RouteInfo struct {
 }
 
 type UpdateSpeedRequest struct {
-	DepartureDate *time.Time `json:"departure_date" binding:"omitempty"`
+	DepartureDate string `json:"departure_date" binding:"omitempty"`
 }
 
 type SpeedRequestFilter struct {

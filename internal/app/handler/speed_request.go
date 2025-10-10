@@ -12,6 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func formatDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format("02.01.2006")
+}
+
 func (h *Handler) GetDraftInfo(ctx *gin.Context) {
 	currentUserID := 1
 
@@ -50,7 +57,7 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 	var err error
 
 	if dateFromStr != "" {
-		parsedDateFrom, err := time.Parse("2006-01-02", dateFromStr)
+		parsedDateFrom, err := time.Parse("02.01.2006", dateFromStr)
 		if err != nil {
 			h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат date_from: %v", err))
 			return
@@ -59,7 +66,7 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 	}
 
 	if dateToStr != "" {
-		parsedDateTo, err := time.Parse("2006-01-02", dateToStr)
+		parsedDateTo, err := time.Parse("02.01.2006", dateToStr)
 		if err != nil {
 			h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат date_to: %v", err))
 			return
@@ -82,10 +89,10 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 	for i, sr := range speedRequests {
 		response[i] = dto.SpeedRequest{
 			SpeedRequestID: sr.SpeedRequestID,
-			DepartureDate:  sr.DepartureDate,
-			CreationDate:   sr.CreationDate,
-			FormationDate:  sr.FormationDate,
-			CompletionDate: sr.CompletionDate,
+			DepartureDate:  formatDate(sr.DepartureDate),
+			CreationDate:   formatDate(sr.CreationDate),
+			FormationDate:  formatDate(sr.FormationDate),
+			CompletionDate: formatDate(sr.CompletionDate),
 			Status:         sr.Status,
 			CreatorLogin:   sr.Creator.Login,
 			ModeratorLogin: getModeratorLogin(sr.Moderator),
@@ -112,29 +119,30 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 		return
 	}
 
-	if speedRequest.Status == ds.StatusDeleted {
-		h.errorHandler(ctx, http.StatusNotFound, fmt.Errorf("заявка не найдена"))
-		return
-	}
-
 	routeReq := make([]dto.RouteSpeedRequestInfo, len(routes))
 	routeInfos := make([]dto.RouteInfo, len(routes))
 
 	speedReq := dto.SpeedRequest{
 		SpeedRequestID: speedRequest.SpeedRequestID,
-		DepartureDate:  speedRequest.DepartureDate,
-		CreationDate:   speedRequest.CreationDate,
-		FormationDate:  speedRequest.FormationDate,
-		CompletionDate: speedRequest.CompletionDate,
+		DepartureDate:  formatDate(speedRequest.DepartureDate),
+		CreationDate:   formatDate(speedRequest.CreationDate),
+		FormationDate:  formatDate(speedRequest.FormationDate),
+		CompletionDate: formatDate(speedRequest.CompletionDate),
 		CreatorLogin:   speedRequest.Creator.Login,
 		ModeratorLogin: speedRequest.Moderator.Login,
 		Status:         speedRequest.Status,
 	}
 
+	var result int
+
 	for i, route := range routes {
 		routeReq[i] = dto.RouteSpeedRequestInfo{
-			ArrivalDate: route.ArrivalDate,
+			ArrivalDate: formatDate(route.ArrivalDate),
 			ShipSpeed:   route.ShipSpeed,
+		}
+
+		if route.ShipSpeed != 0 {
+			result += 1
 		}
 
 		routeInfos[i] = dto.RouteInfo{
@@ -151,7 +159,7 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 		SpeedRequest: speedReq,
 		RouteReq:     routeReq,
 		Routes:       routeInfos,
-		Result:       len(routes),
+		Result:       result,
 	}
 
 	ctx.JSON(http.StatusOK, response)
