@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"rip/internal/app/dto"
 
@@ -54,8 +55,12 @@ func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 	}
 
 	updates := make(map[string]interface{})
-	if request.ArrivalDate != nil {
-		updates["arrival_date"] = *request.ArrivalDate
+	parsedArrivalDate, err := time.Parse("02.01.2006", request.ArrivalDate)
+	if err != nil {
+		return
+	}
+	if parsedArrivalDate != (time.Time{}) {
+		updates["arrival_date"] = parsedArrivalDate
 	}
 
 	if len(updates) == 0 {
