@@ -134,7 +134,7 @@ func (r *Repository) SubmitSpeedRequest(speedRequestID uint, userID uint) error 
 		return errors.New("можно формировать только черновики")
 	}
 
-	if err := r.validateSpeedRequestSubmission(speedRequest); err != nil {
+	if err := r.validateSpeedRequestSubmission(speedRequest.SpeedRequestID, userID); err != nil {
 		return err
 	}
 
@@ -146,17 +146,24 @@ func (r *Repository) SubmitSpeedRequest(speedRequestID uint, userID uint) error 
 	return r.db.Model(&speedRequest).Updates(updates).Error
 }
 
-func (r *Repository) validateSpeedRequestSubmission(speedRequest ds.SpeedRequest) error {
-	if speedRequest.DepartureDate.IsZero() {
-		return errors.New("дата отправления обязательна")
-	}
-
-	count, err := r.GetSpeedRequestRoutesCount(speedRequest.SpeedRequestID)
-	if err != nil {
+func (r *Repository) validateSpeedRequestSubmission(speedRequestID uint, userID uint) error {
+	var speedRequest ds.SpeedRequest
+	if err := r.db.First(&speedRequest, speedRequestID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("заявка не найдена")
+		}
 		return err
 	}
-	if count == 0 {
-		return errors.New("заявка должна содержать хотя бы одну услугу")
+
+	if speedRequest.CreatorID != userID {
+		var user ds.User
+		if err := r.db.First(&user, userID).Error; err != nil {
+			return errors.New("пользователь не найден")
+		}
+
+		if !user.IsModerator {
+			return errors.New("403 доступ запрещен") // 403
+		}
 	}
 
 	return nil
@@ -169,6 +176,15 @@ func (r *Repository) CompleteSpeedRequest(speedRequestID uint, moderatorID uint,
 			return errors.New("заявка не найдена")
 		}
 		return err
+	}
+
+	var moderator ds.User
+	if err := r.db.First(&moderator, moderatorID).Error; err != nil {
+		return errors.New("модератор не найден")
+	}
+
+	if !moderator.IsModerator {
+		return errors.New("403 доступ запрещен") // 403
 	}
 
 	if speedRequest.Status != ds.StatusSubmitted {

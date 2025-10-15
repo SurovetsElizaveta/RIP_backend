@@ -18,9 +18,13 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
-	currentUserID := 1
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		return
+	}
 
-	if err := h.Repository.ValidateSpeedRequestAccess(uint(request.SpeedRequestID), uint(currentUserID)); err != nil {
+	if err := h.Repository.ValidateSpeedRequestAccess(uint(request.SpeedRequestID), userID.(uint)); err != nil {
 		h.errorHandler(ctx, http.StatusForbidden, err)
 		return
 	}
@@ -47,9 +51,13 @@ func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
-	currentUserID := 1
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		return
+	}
 
-	if err := h.Repository.ValidateSpeedRequestAccess(uint(request.SpeedRequestID), uint(currentUserID)); err != nil {
+	if err := h.Repository.ValidateSpeedRequestAccess(uint(request.SpeedRequestID), userID.(uint)); err != nil {
 		h.errorHandler(ctx, http.StatusForbidden, err)
 		return
 	}

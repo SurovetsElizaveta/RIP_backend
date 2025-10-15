@@ -1,10 +1,11 @@
-// main.go
 package main
 
 import (
 	"rip/internal/app/config"
 	"rip/internal/app/dsn"
 	"rip/internal/app/handler"
+	"rip/internal/app/jwt"
+	"rip/internal/app/redis"
 	"rip/internal/app/repository"
 	"rip/internal/pkg"
 	"rip/internal/pkg/minio"
@@ -29,15 +30,24 @@ func main() {
 		logrus.Fatalf("error initializing Minio client: %v", err)
 	}
 
+	// Инициализируем Redis
+	redisClient, err := redis.New(conf.Redis)
+	if err != nil {
+		logrus.Fatalf("error initializing Redis client: %v", err)
+	}
+
+	// Инициализируем JWT менеджер
+	jwtManager := jwt.NewManager(conf.JWT)
+
 	postgresString := dsn.FromEnv()
 
-	// Передаем Minio клиент в репозиторий
+	// Передаем зависимости в репозиторий
 	rep, errRep := repository.New(postgresString, minioClient)
 	if errRep != nil {
 		logrus.Fatalf("error initializing repository: %v", errRep)
 	}
 
-	hand := handler.NewHandler(rep)
+	hand := handler.NewHandler(rep, jwtManager, redisClient)
 
 	application := pkg.NewApp(conf, router, hand)
 	application.RunApp()

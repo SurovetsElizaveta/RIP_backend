@@ -236,9 +236,13 @@ func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
-	moderatorID := 2
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		return
+	}
 
-	if err := h.Repository.CompleteSpeedRequest(uint(speedRequestID), uint(moderatorID), request.Status); err != nil {
+	if err := h.Repository.CompleteSpeedRequest(uint(speedRequestID), userID.(uint), request.Status); err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else if err.Error() == "доступ запрещен" {

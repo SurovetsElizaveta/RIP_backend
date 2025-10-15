@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Заявка</title>
+    <link rel="stylesheet" href="/styles/draft_style.css">
+</head>
+<header>
+    <a href="/routes"><img src="http://127.0.0.1:9000/routes/main_ship.svg" alt="routes"></a>
+</header>
+<body>
+    <div class="main-space">
+        <h3>Заявка</h3>
+        <div class="departure-date"><h4>Дата отправления: {{ .request.DepartureDate.Format "02.01.2006" }}</h4></div>
+        <div class="routes">
+            {{ range $route := .routes }}
+            {{ $speedRequestRoute := index $.speedRequestRoutesMap $route.RouteID }}
+            <div class="route">
+                <div class="route-img">
+                    <img class="route-img" src="{{ $route.ImageUrl }}" alt="route{{ $route.RouteID }}">
+                </div>
+                <div class="route-info">
+                    <h4>{{ $route.Title }}, {{ $route.Distance }} км</h4>
+                </div>
+                <div class="route-arrival-info">
+                    <h4 class="arrival-date">Дата прибытия: {{ $speedRequestRoute.ArrivalDate.Format "02.01.2006" }}</h4>
+                    <div class="ship-speed">
+                        <h4>Средняя скорость контейнеровоза:</h4>
+                        <h4 class="speed-value">{{ $speedRequestRoute.ShipSpeed }} узл.</h4>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
+            <form action="/delete-draft/{{ .speedRequest.SpeedRequestID }}" method="POST" class="delete-draft-request-form">
+                <button type="submit" class="delete-btn">Удалить заявку</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

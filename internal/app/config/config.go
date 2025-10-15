@@ -2,6 +2,8 @@ package config
 
 import (
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
@@ -11,6 +13,21 @@ import (
 type Config struct {
 	ServiceHost string
 	ServicePort int
+	JWT         JWTConfig
+	Redis       RedisConfig
+}
+
+type JWTConfig struct {
+	Secret          string
+	AccessTokenTTL  time.Duration
+	RefreshTokenTTL time.Duration
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Password string
+	DB       int
 }
 
 func NewConfig() (*Config, error) {
@@ -33,14 +50,31 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	cfg := &Config{}           // создаем объект конфига
-	err = viper.Unmarshal(cfg) // читаем информацию из файла,
-	// конвертируем и затем кладем в нашу переменную cfg
+	cfg := &Config{}
+	err = viper.Unmarshal(cfg)
 	if err != nil {
 		return nil, err
 	}
+
+	// JWT конфигурация из env
+	cfg.JWT.Secret = getEnv("JWT_SECRET", "your-super-secret-key")
+	cfg.JWT.AccessTokenTTL = time.Hour * 24      // 24 часа
+	cfg.JWT.RefreshTokenTTL = time.Hour * 24 * 7 // 7 дней
+
+	// Redis конфигурация из env
+	cfg.Redis.Host = getEnv("REDIS_HOST", "localhost")
+	cfg.Redis.Port, _ = strconv.Atoi(getEnv("REDIS_PORT", "6379"))
+	cfg.Redis.Password = getEnv("REDIS_PASSWORD", "")
+	cfg.Redis.DB, _ = strconv.Atoi(getEnv("REDIS_DB", "0"))
 
 	log.Info("config parsed")
 
 	return cfg, nil
 }
+
+// func getEnv(key, defaultValue string) string {
+// 	if value := os.Getenv(key); value != "" {
+// 		return value
+// 	}
+// 	return defaultValue
+// }
