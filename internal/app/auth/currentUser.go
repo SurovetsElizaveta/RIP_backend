@@ -4,7 +4,7 @@ type CurrentUser struct {
 	UserID int
 }
 
-var currentUser = &CurrentUser{UserID: 1}
+var currentUser *CurrentUser
 
 func GetCurrentUser() *CurrentUser {
 	return currentUser

@@ -10,6 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// RemoveRouteSpeedRequest godoc
+// @Summary Remove route speed request
+// @Description Remove route from speed request. For authentificated users only.
+// @Tags routespeedrequests
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routespeedrequests [delete]
 func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 	var request dto.RemoveRouteSpeedRequest
 
@@ -43,6 +56,19 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 	})
 }
 
+// UpdateRouteSpeedRequest godoc
+// @Summary Update route speed request
+// @Description Upadet field arrival date in route speed request. For authentificated users only.
+// @Tags routespeedrequests
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routespeedrequests [put]
 func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 	var request dto.UpdateRouteSpeedRequest
 

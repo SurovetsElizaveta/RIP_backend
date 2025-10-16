@@ -8,22 +8,24 @@ import (
 
 func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		var tokenString string
+
 		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			h.errorHandler(ctx, 401, errors.New("authorization header required"))
+		if authHeader != "" && len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+			tokenString = authHeader[7:]
+		} else {
+			cookie, err := ctx.Cookie("access_token")
+			if err == nil {
+				tokenString = cookie
+			}
+		}
+
+		if tokenString == "" {
+			h.errorHandler(ctx, 401, errors.New("authorization required"))
 			ctx.Abort()
 			return
 		}
 
-		if len(authHeader) < 7 || authHeader[:7] != "Bearer " {
-			h.errorHandler(ctx, 401, errors.New("invalid authorization header format"))
-			ctx.Abort()
-			return
-		}
-
-		tokenString := authHeader[7:]
-
-		// Проверяем blacklist
 		isBlacklisted, err := h.Redis.IsInBlacklist(ctx.Request.Context(), tokenString)
 		if err != nil {
 			h.errorHandler(ctx, 500, errors.New("internal server error"))
@@ -49,7 +51,6 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Сохраняем данные пользователя в контекст
 		ctx.Set("user_id", claims.UserID)
 		ctx.Set("user_login", claims.Login)
 		ctx.Set("is_moderator", claims.IsModerator)
@@ -58,7 +59,6 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// ModeratorMiddleware middleware для проверки прав модератора
 func (h *Handler) ModeratorMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		isModerator, exists := ctx.Get("is_moderator")

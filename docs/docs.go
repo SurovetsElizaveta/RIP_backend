@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.RefreshTokenRequest"
+                            "$ref": "#/definitions/rip_internal_app_dto.RefreshTokenRequest"
                         }
                     }
                 ],
@@ -43,19 +43,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     }
                 }
@@ -81,7 +81,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignInRequest"
+                            "$ref": "#/definitions/rip_internal_app_dto.SignInRequest"
                         }
                     }
                 ],
@@ -89,19 +89,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     }
                 }
@@ -129,19 +129,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.MessageResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     }
                 }
@@ -167,7 +167,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.SignUpRequest"
+                            "$ref": "#/definitions/rip_internal_app_dto.SignUpRequest"
                         }
                     }
                 ],
@@ -175,19 +175,537 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.AuthResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/draft/addroute/{route_id}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add route to draft. Create new darft if darft not existing. For authentificated users (client, moderator)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Add route to draft",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Route ID",
+                        "name": "route_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/routes": {
+            "get": {
+                "description": "Get all routes list with optional filters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Get all routes",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Minimum distance filter",
+                        "name": "min_distance",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum distance filter",
+                        "name": "max_distance",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "routes",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/rip_internal_app_ds.Route"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create new route. Only for moderator",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Create new route",
+                "responses": {
+                    "200": {
+                        "description": "route",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                        }
+                    }
+                }
+            }
+        },
+        "/routes/{route_id}": {
+            "get": {
+                "description": "Get route information by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Get route by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Route ID",
+                        "name": "route_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "route",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update existing route. Only for moderator",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Update existing route",
+                "responses": {
+                    "200": {
+                        "description": "route",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete existing route. Only for moderator",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Delete existing route",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Route ID",
+                        "name": "route_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Маршрут успешно удален",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/routes/{route_id}/image": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upload route image. Add new image if route doesn` + "`" + `t have one or change image. Only for moderator",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routes"
+                ],
+                "summary": "Upload route image",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Route ID",
+                        "name": "route_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Изображение успешно загружено и обновлено",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/routespeedrequests": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Upadet field arrival date in route speed request. For authentificated users only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routespeedrequests"
+                ],
+                "summary": "Update route speed request",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Remove route from speed request. For authentificated users only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "routespeedrequests"
+                ],
+                "summary": "Remove route speed request",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/speedrequests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get speed requests list. For authentificated users only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Get speed requests list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date From",
+                        "name": "date_from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date To",
+                        "name": "date_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Status",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/rip_internal_app_dto.SpeedRequest"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/speedrequests/draft": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get darft infomation. Returns speedrequestid nil and count 0 for guest.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Get darft information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/speedrequests/{speed_request_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get speed request by ID. For authentificated users only. Client can see only their speed requests",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Get speed request by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Speed Request ID",
+                        "name": "speed_request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update speed request. For authentificated users only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Update speed request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Speed Request ID",
+                        "name": "speed_request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "request",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_dto.UpdateSpeedRequest"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Delete speed request. For authentificated users only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Delete speed request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Speed Request ID",
+                        "name": "speed_request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/speedrequests/{speed_request_id}/complete": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Complete speed requests. For moderators only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Complete speed request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Speed Request ID",
+                        "name": "speed_request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/speedrequests/{speed_request_id}/submit": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submit speed request. For authentificated users only.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "speedrequests"
+                ],
+                "summary": "Sumbit speed request",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Speed Request ID",
+                        "name": "speed_request_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "response",
+                        "schema": {
+                            "$ref": "#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse"
                         }
                     }
                 }
@@ -215,19 +733,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.UserResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.UserResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     }
                 }
@@ -256,7 +774,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.UpdateUserRequest"
+                            "$ref": "#/definitions/rip_internal_app_dto.UpdateUserRequest"
                         }
                     }
                 ],
@@ -264,19 +782,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.MessageResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
                         }
                     }
                 }
@@ -284,7 +802,33 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.AuthResponse": {
+        "rip_internal_app_ds.Route": {
+            "type": "object",
+            "properties": {
+                "delay": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "distance": {
+                    "type": "integer"
+                },
+                "imageURL": {
+                    "type": "string"
+                },
+                "routeID": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "rip_internal_app_dto.AuthResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -303,11 +847,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/dto.UserResponse"
+                    "$ref": "#/definitions/rip_internal_app_dto.UserResponse"
                 }
             }
         },
-        "dto.ErrorResponse": {
+        "rip_internal_app_dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -315,7 +859,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.MessageResponse": {
+        "rip_internal_app_dto.MessageResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -323,7 +867,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.RefreshTokenRequest": {
+        "rip_internal_app_dto.RefreshTokenRequest": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -334,7 +878,41 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SignInRequest": {
+        "rip_internal_app_dto.RouteInfo": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "distance": {
+                    "type": "integer"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "route_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "rip_internal_app_dto.RouteSpeedRequestInfo": {
+            "type": "object",
+            "properties": {
+                "arrival_date": {
+                    "type": "string"
+                },
+                "ship_speed": {
+                    "type": "integer"
+                }
+            }
+        },
+        "rip_internal_app_dto.SignInRequest": {
             "type": "object",
             "required": [
                 "login",
@@ -349,16 +927,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.SignUpRequest": {
+        "rip_internal_app_dto.SignUpRequest": {
             "type": "object",
             "required": [
                 "login",
                 "password"
             ],
             "properties": {
-                "is_moderator": {
-                    "type": "boolean"
-                },
                 "login": {
                     "type": "string"
                 },
@@ -368,7 +943,67 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UpdateUserRequest": {
+        "rip_internal_app_dto.SpeedRequest": {
+            "type": "object",
+            "properties": {
+                "completion_date": {
+                    "type": "string"
+                },
+                "creation_date": {
+                    "type": "string"
+                },
+                "creator_login": {
+                    "type": "string"
+                },
+                "departure_date": {
+                    "type": "string"
+                },
+                "formation_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "moderator_login": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "rip_internal_app_dto.SpeedRequestDetailedResponse": {
+            "type": "object",
+            "properties": {
+                "result": {
+                    "type": "integer"
+                },
+                "route_req": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rip_internal_app_dto.RouteSpeedRequestInfo"
+                    }
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/rip_internal_app_dto.RouteInfo"
+                    }
+                },
+                "speed_request": {
+                    "$ref": "#/definitions/rip_internal_app_dto.SpeedRequest"
+                }
+            }
+        },
+        "rip_internal_app_dto.UpdateSpeedRequest": {
+            "type": "object",
+            "properties": {
+                "departure_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "rip_internal_app_dto.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "login": {
@@ -379,7 +1014,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.UserResponse": {
+        "rip_internal_app_dto.UserResponse": {
             "type": "object",
             "properties": {
                 "is_moderator": {
@@ -393,17 +1028,24 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
-	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/api",
+	Schemes:          []string{"http"},
+	Title:            "RIP API",
+	Description:      "Route Information Platform API",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

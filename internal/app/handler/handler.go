@@ -42,10 +42,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		auth.GET("/users/me", h.GetCurrentUser)
 		auth.PUT("/users/me", h.UpdateUser)
 
-		// Routes
 		auth.POST("/draft/addroute/:route_id", h.AddToDraft)
 
-		// SpeedRequests
 		auth.GET("/speedrequests/draft", h.GetDraftInfo)
 		auth.GET("/speedrequests", h.GetAllSpeedRequests)
 		auth.GET("/speedrequests/:speed_request_id", h.GetSpeedRequestByID)
@@ -53,7 +51,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 		auth.PUT("/speedrequests/:speed_request_id/submit", h.SubmitSpeedRequest)
 		auth.DELETE("/speedrequests/:speed_request_id", h.DeleteSpeedRequest)
 
-		// RouteSpeedRequest
 		auth.DELETE("/routespeedrequest", h.RemoveRouteSpeedRequest)
 		auth.PUT("/routespeedrequest", h.UpdateRouteSpeedRequest)
 
@@ -70,7 +67,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	}
 }
 
-// RegisterStatic То же самое, что и с маршрутами, регистрируем статику
 func (h *Handler) RegisterStatic(router *gin.Engine) {
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/styles", "./resources/styles")
@@ -78,7 +74,6 @@ func (h *Handler) RegisterStatic(router *gin.Engine) {
 
 }
 
-// errorHandler для более удобного вывода ошибок
 func (h *Handler) errorHandler(ctx *gin.Context, errorStatusCode int, err error) {
 	logrus.Error(err.Error())
 	ctx.JSON(errorStatusCode, gin.H{

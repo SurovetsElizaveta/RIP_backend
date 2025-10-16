@@ -19,10 +19,26 @@ func formatDate(t time.Time) string {
 	return t.Format("02.01.2006")
 }
 
+// GetDraftInfo godoc
+// @Summary Get darft information
+// @Description Get darft infomation. Returns speedrequestid nil and count 0 for guest.
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} object
+// @Failture 500
+// @Router /speedrequests/draft [get]
 func (h *Handler) GetDraftInfo(ctx *gin.Context) {
-	currentUserID := 1
+	currentUserID, exists := ctx.Get("user_id")
 
-	draft, err := h.Repository.GetDraftByUserID(uint(currentUserID))
+	if !exists {
+		ctx.JSON(http.StatusOK, gin.H{
+			"draft_id": nil,
+			"count":    0,
+		})
+	}
+
+	draft, err := h.Repository.GetDraftByUserID(currentUserID.(uint))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -48,7 +64,29 @@ func (h *Handler) GetDraftInfo(ctx *gin.Context) {
 	})
 }
 
+// GetAllSpeedRequests godoc
+// @Summary Get speed requests list
+// @Description Get speed requests list. For authentificated users only.
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Param date_from query string false "Date From" Format(date)
+// @Param date_to query string false "Date To" Rormat(date)
+// @Param status query string false "Status"
+// @Success 200 {array} dto.SpeedRequest "response"
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests [get]
 func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
+
+	isModerator, _ := ctx.Get("is_moderator")
+
 	status := ctx.Query("status")
 	dateFromStr := ctx.Query("date_from")
 	dateToStr := ctx.Query("date_to")
@@ -79,7 +117,13 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 		return
 	}
 
-	speedRequests, err := h.Repository.GetSpeedRequestsWithFilters(status, dateFrom, dateTo)
+	speedRequests, err := h.Repository.GetSpeedRequestsWithFilters(
+		status,
+		dateFrom,
+		dateTo,
+		currentUserID.(uint),
+		isModerator.(bool),
+	)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
@@ -102,17 +146,41 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// GetSpeedRequestByID godoc
+// @Summary Get speed request by ID
+// @Description Get speed request by ID. For authentificated users only. Client can see only their speed requests
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Param speed_request_id path int true "Speed Request ID"
+// @Success 200 {object} dto.SpeedRequestDetailedResponse "response"
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests/{speed_request_id} [get]
 func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
+
 	speedRequestID, err := strconv.ParseUint(ctx.Param("speed_request_id"), 10, 32)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
 		return
 	}
 
-	speedRequest, routes, err := h.Repository.GetSpeedRequestWithRoutes(uint(speedRequestID))
+	speedRequest, routes, err := h.Repository.GetSpeedRequestWithRoutes(uint(speedRequestID), currentUserID.(uint))
 	if err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
+		} else if err.Error() == "пользователь не найден" {
+			h.errorHandler(ctx, http.StatusUnauthorized, err)
+		} else if err.Error() == "доступ запрещен" {
+			h.errorHandler(ctx, http.StatusForbidden, err)
 		} else {
 			h.errorHandler(ctx, http.StatusInternalServerError, err)
 		}
@@ -165,7 +233,27 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// UpdateSpeedRequest godoc
+// @Summary Update speed request
+// @Description Update speed request. For authentificated users only.
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Param speed_request_id path int true "Speed Request ID"
+// @Success 200 {object} dto.UpdateSpeedRequest "request"
+// @Failture 404
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests/{speed_request_id} [put]
 func (h *Handler) UpdateSpeedRequest(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
+
 	speedRequestID, err := strconv.Atoi(ctx.Param("speed_request_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
@@ -178,9 +266,7 @@ func (h *Handler) UpdateSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
-	currentUserID := 1
-
-	if err := h.Repository.UpdateSpeedRequest(uint(speedRequestID), uint(currentUserID), request); err != nil {
+	if err := h.Repository.UpdateSpeedRequest(uint(speedRequestID), currentUserID.(uint), request); err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else if err.Error() == "доступ запрещен" {
@@ -194,16 +280,33 @@ func (h *Handler) UpdateSpeedRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, request)
 }
 
+// SubmitSpeedRequest godoc
+// @Summary Sumbit speed request
+// @Description Submit speed request. For authentificated users only.
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Param speed_request_id path int true "Speed Request ID"
+// @Success 200 {object} dto.SpeedRequestDetailedResponse "response"
+// @Failture 404
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests/{speed_request_id}/submit [put]
 func (h *Handler) SubmitSpeedRequest(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
 	speedRequestID, err := strconv.Atoi(ctx.Param("speed_request_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
 		return
 	}
 
-	currentUserID := 1
-
-	if err := h.Repository.SubmitSpeedRequest(uint(speedRequestID), uint(currentUserID)); err != nil {
+	if err := h.Repository.SubmitSpeedRequest(uint(speedRequestID), currentUserID.(uint)); err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else if err.Error() == "доступ запрещен" {
@@ -221,6 +324,20 @@ func (h *Handler) SubmitSpeedRequest(ctx *gin.Context) {
 	})
 }
 
+// CompleteSpeedRequest godoc
+// @Summary Complete speed request
+// @Description Complete speed requests. For moderators only.
+// @Tags speedrequests
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param speed_request_id path int true "Speed Request ID"
+// @Success 200 {object} object
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests/{speed_request_id}/complete [put]
 func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 	speedRequestID, err := strconv.Atoi(ctx.Param("speed_request_id"))
 	if err != nil {
@@ -260,16 +377,33 @@ func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 	})
 }
 
+// DeleteSpeedRequest godoc
+// @Summary Delete speed request
+// @Description Delete speed request. For authentificated users only.
+// @Tags speedrequests
+// @Produce json
+// @Security BearerAuth
+// @Param speed_request_id path int true "Speed Request ID"
+// @Success 200 {object} object
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /speedrequests/{speed_request_id} [delete]
 func (h *Handler) DeleteSpeedRequest(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
 	speedRequestID, err := strconv.Atoi(ctx.Param("speed_request_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный ID заявки"))
 		return
 	}
 
-	currentUserID := 1
-
-	if err := h.Repository.DeleteSpeedRequest(uint(speedRequestID), uint(currentUserID)); err != nil {
+	if err := h.Repository.DeleteSpeedRequest(uint(speedRequestID), currentUserID.(uint)); err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else if err.Error() == "доступ запрещен" {

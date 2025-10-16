@@ -16,6 +16,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// GetAllRoutes godoc
+// @Summary Get all routes
+// @Description Get all routes list with optional filters
+// @Tags routes
+// @Produce json
+// @Param min_distance query int false "Minimum distance filter"
+// @Param max_distance query int false "Maximum distance filter"
+// @Success 200 {array} ds.Route "routes"
+// @Failture 500
+// @Router /routes [get]
 func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 	var routes []ds.Route
 	var err error
@@ -73,6 +83,15 @@ func (h *Handler) GetAllRoutes(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, routes)
 }
 
+// GetRouteByID godoc
+// @Summary Get route by ID
+// @Description Get route information by ID
+// @Tags routes
+// @Produce json
+// @Param route_id path int true "Route ID"
+// @Success 200 {object} ds.Route "route"
+// @Failture 500
+// @Router /routes/{route_id} [get]
 func (h *Handler) GetRouteByID(ctx *gin.Context) {
 	strId := ctx.Param("route_id")
 	route_id, err := strconv.Atoi(strId)
@@ -96,7 +115,31 @@ func (h *Handler) GetRouteByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, route)
 }
 
+// CreateRoute godoc
+// @Summary Create new route
+// @Description Create new route. Only for moderator
+// @Tags routes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} ds.Route "route"
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routes [post]
 func (h *Handler) CreateRoute(ctx *gin.Context) {
+	isModerator, exists := ctx.Get("is_moderator")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		return
+	}
+
+	if !isModerator.(bool) {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("only moderators can create routes"))
+		return
+	}
+
 	var request dto.CreateRoute
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -120,7 +163,31 @@ func (h *Handler) CreateRoute(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, route)
 }
 
+// UpdateRoute godoc
+// @Summary Update existing route
+// @Description Update existing route. Only for moderator
+// @Tags routes
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} ds.Route "route"
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routes/{route_id} [put]
 func (h *Handler) UpdateRoute(ctx *gin.Context) {
+	isModerator, exists := ctx.Get("is_moderator")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		return
+	}
+
+	if !isModerator.(bool) {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("only moderators can create routes"))
+		return
+	}
+
 	routeID, err := strconv.Atoi(ctx.Param("route_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID маршрута"))
@@ -163,7 +230,31 @@ func (h *Handler) UpdateRoute(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, existingRoute)
 }
 
+// DeleteRoute godoc
+// @Summary Delete existing route
+// @Description Delete existing route. Only for moderator
+// @Tags routes
+// @Produce json
+// @Security BearerAuth
+// @Param route_id path int true "Route ID"
+// @Success 200 {object} string "Маршрут успешно удален"
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routes/{route_id} [delete]
 func (h *Handler) DeleteRoute(ctx *gin.Context) {
+	isModerator, exists := ctx.Get("is_moderator")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		return
+	}
+
+	if !isModerator.(bool) {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("only moderators can create routes"))
+		return
+	}
+
 	routeID, err := strconv.Atoi(ctx.Param("route_id"))
 	if err != nil {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("неверный ID маршрута"))
@@ -180,7 +271,27 @@ func (h *Handler) DeleteRoute(ctx *gin.Context) {
 	})
 }
 
+// AddToDraft godoc
+// @Summary Add route to draft
+// @Description Add route to draft. Create new darft if darft not existing. For authentificated users (client, moderator)
+// @Tags routes
+// @Produce json
+// @Security BearerAuth
+// @Param route_id path int true "Route ID"
+// @Success 200 {object} object
+// @Failture 404
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /draft/addroute/{route_id} [post]
 func (h *Handler) AddToDraft(ctx *gin.Context) {
+	currentUserID, exists := ctx.Get("user_id")
+
+	if !exists {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
+		return
+	}
+
 	routeIDStr := ctx.Param("route_id")
 	routeID, err := strconv.Atoi(routeIDStr)
 	if err != nil {
@@ -188,9 +299,7 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 		return
 	}
 
-	currentUserID := uint(1)
-
-	speedRequestID, err := h.Repository.AddRouteToDraft(uint(routeID), currentUserID)
+	speedRequestID, err := h.Repository.AddRouteToDraft(uint(routeID), currentUserID.(uint))
 	if err != nil {
 		if err.Error() == "маршрут не найден" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -209,7 +318,31 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 	})
 }
 
+// UploadRouteImage godoc
+// @Summary Upload route image
+// @Description Upload route image. Add new image if route doesn`t have one or change image. Only for moderator
+// @Tags routes
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param route_id path int true "Route ID"
+// @Success 200 {object} string "Изображение успешно загружено и обновлено"
+// @Failture 401
+// @Failture 403
+// @Failture 400
+// @Failture 500
+// @Router /routes/{route_id}/image [post] [get]
 func (h *Handler) UploadRouteImage(ctx *gin.Context) {
+	isModerator, exists := ctx.Get("is_moderator")
+	if !exists {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		return
+	}
+
+	if !isModerator.(bool) {
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("only moderators can create routes"))
+		return
+	}
 	routeIDStr := ctx.Param("route_id")
 	routeID, err := strconv.ParseUint(routeIDStr, 10, 32)
 	if err != nil {

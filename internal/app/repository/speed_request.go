@@ -29,13 +29,21 @@ func (r *Repository) GetSpeedRequestRoutesCount(speedRequestID uint) (int64, err
 	return count, err
 }
 
-func (r *Repository) GetSpeedRequestsWithFilters(status string, dateFrom, dateTo *time.Time) ([]ds.SpeedRequest, error) {
+func (r *Repository) GetSpeedRequestsWithFilters(
+	status string,
+	dateFrom, dateTo *time.Time,
+	userID uint,
+	isModerator bool,
+) ([]ds.SpeedRequest, error) {
 	var speedRequests []ds.SpeedRequest
 
 	query := r.db.Model(&ds.SpeedRequest{}).
 		Preload("Creator").
-		Preload("Moderator").
-		Where("status != ? AND status != ?", ds.StatusDeleted, ds.StatusDraft)
+		Preload("Moderator")
+
+	if !isModerator {
+		query = query.Where("creator_id = ?", userID)
+	}
 
 	if status != "" {
 		query = query.Where("status = ?", status)
@@ -56,8 +64,7 @@ func (r *Repository) GetSpeedRequestsWithFilters(status string, dateFrom, dateTo
 	err := query.Find(&speedRequests).Error
 	return speedRequests, err
 }
-
-func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint) (ds.SpeedRequest, []ds.RouteSpeedRequest, error) {
+func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint, userID uint) (ds.SpeedRequest, []ds.RouteSpeedRequest, error) {
 	var speedRequest ds.SpeedRequest
 	err := r.db.
 		Preload("Creator").
@@ -69,6 +76,15 @@ func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint) (ds.SpeedReq
 			return ds.SpeedRequest{}, nil, errors.New("заявка не найдена")
 		}
 		return ds.SpeedRequest{}, nil, err
+	}
+
+	var user ds.User
+	if err := r.db.First(&user, userID).Error; err != nil {
+		return ds.SpeedRequest{}, nil, errors.New("пользователь не найден")
+	}
+
+	if speedRequest.CreatorID != userID && !user.IsModerator {
+		return ds.SpeedRequest{}, nil, errors.New("доступ запрещен")
 	}
 
 	var routes []ds.RouteSpeedRequest

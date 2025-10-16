@@ -48,7 +48,6 @@ func (c *Client) Exists(ctx context.Context, keys ...string) (int64, error) {
 	return c.client.Exists(ctx, keys...).Result()
 }
 
-// JWT blacklist methods
 func (c *Client) AddToBlacklist(ctx context.Context, token string, expiresIn time.Duration) error {
 	key := "jwt_blacklist:" + token
 	return c.Set(ctx, key, "1", expiresIn)
@@ -63,7 +62,6 @@ func (c *Client) IsInBlacklist(ctx context.Context, token string) (bool, error) 
 	return result > 0, nil
 }
 
-// Refresh token storage
 func (c *Client) StoreRefreshToken(ctx context.Context, userID uint, token string, expiresIn time.Duration) error {
 	key := "refresh_token:" + strconv.FormatUint(uint64(userID), 10)
 	return c.Set(ctx, key, token, expiresIn)

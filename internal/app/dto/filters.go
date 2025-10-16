@@ -1,4 +1,3 @@
-// internal/app/dto/filters.go
 package dto
 
 type ServiceFilter struct {
