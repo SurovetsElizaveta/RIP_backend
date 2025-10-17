@@ -57,7 +57,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	cfg.JWT.Secret = getEnv("JWT_SECRET", "your-super-secret-key")
-	cfg.JWT.AccessTokenTTL = time.Hour * 24
+	cfg.JWT.AccessTokenTTL = time.Hour * 1
 	cfg.JWT.RefreshTokenTTL = time.Hour * 24 * 7
 
 	cfg.Redis.Host = getEnv("REDIS_HOST", "localhost")

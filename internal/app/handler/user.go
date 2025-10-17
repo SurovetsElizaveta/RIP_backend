@@ -33,7 +33,6 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	// Валидация
 	if request.Login == "" || request.Password == "" {
 		h.errorHandler(ctx, http.StatusBadRequest, errors.New("логин и пароль обязательны"))
 		return
@@ -258,23 +257,16 @@ func (h *Handler) SignOut(ctx *gin.Context) {
 // @Produce json
 // @Param request body dto.RefreshTokenRequest true "Refresh token"
 // @Success 200 {object} dto.AuthResponse
-// @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Router /auth/refresh [post]
 func (h *Handler) RefreshToken(ctx *gin.Context) {
-	var request dto.RefreshTokenRequest
-
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, err)
+	refreshToken, err := ctx.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("refresh token not found"))
 		return
 	}
 
-	if request.RefreshToken == "" {
-		h.errorHandler(ctx, http.StatusBadRequest, errors.New("refresh token обязателен"))
-		return
-	}
-
-	claims, err := h.JWTManager.ValidateToken(request.RefreshToken)
+	claims, err := h.JWTManager.ValidateToken(refreshToken)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("invalid refresh token"))
 		return
@@ -285,9 +277,14 @@ func (h *Handler) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	storedToken, err := h.Redis.GetRefreshToken(ctx.Request.Context(), claims.UserID)
-	if err != nil || storedToken != request.RefreshToken {
-		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("refresh token not found or expired"))
+	isBlacklisted, err := h.Redis.IsUserBlacklisted(ctx.Request.Context(), claims.UserID)
+	if err != nil {
+		logrus.Errorf("Ошибка проверки blacklist: %v", err)
+		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("internal server error"))
+		return
+	}
+	if isBlacklisted {
+		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("user session invalidated"))
 		return
 	}
 
@@ -297,49 +294,27 @@ func (h *Handler) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	tokenPair, err := h.JWTManager.GenerateTokenPair(user.UserID, user.Login, user.IsModerator)
+	accessToken, err := h.JWTManager.GenerateAccessToken(user.UserID, user.Login, user.IsModerator)
 	if err != nil {
-		logrus.Errorf("Ошибка генерации токенов: %v", err)
-		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка генерации токенов"))
-		return
-	}
-
-	err = h.Redis.StoreRefreshToken(ctx.Request.Context(), user.UserID, tokenPair.RefreshToken, h.JWTManager.GetRefreshTokenTTL())
-	if err != nil {
-		logrus.Errorf("Ошибка сохранения refresh token: %v", err)
-		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка сохранения токена"))
+		logrus.Errorf("Ошибка генерации access token: %v", err)
+		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка генерации токена"))
 		return
 	}
 
 	ctx.SetCookie(
 		"access_token",
-		tokenPair.AccessToken,
-		int(tokenPair.ExpiresIn),
+		accessToken,
+		int(h.JWTManager.GetAccessTokenTTL().Seconds()),
 		"/",
 		"",
 		false,
 		true,
 	)
 
-	ctx.SetCookie(
-		"refresh_token",
-		tokenPair.RefreshToken,
-		int(h.JWTManager.GetRefreshTokenTTL().Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	response := dto.AuthResponse{
-		Message:   "Токены успешно обновлены",
-		TokenType: tokenPair.TokenType,
-		ExpiresIn: tokenPair.ExpiresIn,
-		User: dto.UserResponse{
-			UserID:      user.UserID,
-			Login:       user.Login,
-			IsModerator: user.IsModerator,
-		},
+	response := dto.AccessTokenResponse{
+		Message:   "Access token успешно обновлен",
+		TokenType: "Bearer",
+		ExpiresIn: int64(h.JWTManager.GetAccessTokenTTL().Seconds()),
 	}
 
 	ctx.JSON(http.StatusOK, response)

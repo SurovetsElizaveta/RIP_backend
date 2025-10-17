@@ -39,3 +39,9 @@ type MessageResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+type AccessTokenResponse struct {
+	Message   string `json:"message"`
+	TokenType string `json:"token_type"`
+	ExpiresIn int64  `json:"expires_in"`
+}

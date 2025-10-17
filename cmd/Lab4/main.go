@@ -31,15 +31,6 @@ import (
 func main() {
 	router := gin.Default()
 
-	// router.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     []string{"*"}, // Разрешить все origins для разработки
-	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
-	// 	ExposeHeaders:    []string{"Content-Length"},
-	// 	AllowCredentials: true,
-	// 	MaxAge:           12 * time.Hour,
-	// }))
-
 	conf, err := config.NewConfig()
 	if err != nil {
 		logrus.Fatalf("error loading config: %v", err)

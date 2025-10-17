@@ -76,3 +76,17 @@ func (c *Client) DeleteRefreshToken(ctx context.Context, userID uint) error {
 	key := "refresh_token:" + strconv.FormatUint(uint64(userID), 10)
 	return c.Del(ctx, key)
 }
+
+func (c *Client) AddUserToBlacklist(ctx context.Context, userID uint, expiresIn time.Duration) error {
+	key := "user_blacklist:" + strconv.FormatUint(uint64(userID), 10)
+	return c.Set(ctx, key, "1", expiresIn)
+}
+
+func (c *Client) IsUserBlacklisted(ctx context.Context, userID uint) (bool, error) {
+	key := "user_blacklist:" + strconv.FormatUint(uint64(userID), 10)
+	result, err := c.Exists(ctx, key)
+	if err != nil {
+		return false, err
+	}
+	return result > 0, nil
+}
