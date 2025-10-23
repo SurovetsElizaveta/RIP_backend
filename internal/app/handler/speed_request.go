@@ -154,7 +154,6 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param speed_request_id path int true "Speed Request ID"
 // @Success 200 {object} dto.SpeedRequestDetailedResponse "response"
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -178,7 +177,7 @@ func (h *Handler) GetSpeedRequestByID(ctx *gin.Context) {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
 		} else if err.Error() == "пользователь не найден" {
-			h.errorHandler(ctx, http.StatusUnauthorized, err)
+			h.errorHandler(ctx, http.StatusForbidden, err)
 		} else if err.Error() == "доступ запрещен" {
 			h.errorHandler(ctx, http.StatusForbidden, err)
 		} else {
@@ -333,7 +332,6 @@ func (h *Handler) SubmitSpeedRequest(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param speed_request_id path int true "Speed Request ID"
 // @Success 200 {object} object
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -355,7 +353,7 @@ func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("пользователь не аутентифицирован"))
 		return
 	}
 
@@ -385,7 +383,6 @@ func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param speed_request_id path int true "Speed Request ID"
 // @Success 200 {object} object
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500

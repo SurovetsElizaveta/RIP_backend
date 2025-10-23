@@ -1,6 +1,6 @@
 basePath: /api
 definitions:
-  rip_internal_app_ds.Route:
+  ds.Route:
     properties:
       delay:
         type: integer
@@ -17,7 +17,7 @@ definitions:
       title:
         type: string
     type: object
-  rip_internal_app_dto.AuthResponse:
+  dto.AuthResponse:
     properties:
       access_token:
         type: string
@@ -30,26 +30,26 @@ definitions:
       token_type:
         type: string
       user:
-        $ref: '#/definitions/rip_internal_app_dto.UserResponse'
+        $ref: '#/definitions/dto.UserResponse'
     type: object
-  rip_internal_app_dto.ErrorResponse:
+  dto.ErrorResponse:
     properties:
       error:
         type: string
     type: object
-  rip_internal_app_dto.MessageResponse:
+  dto.MessageResponse:
     properties:
       message:
         type: string
     type: object
-  rip_internal_app_dto.RefreshTokenRequest:
+  dto.RefreshTokenRequest:
     properties:
       refresh_token:
         type: string
     required:
     - refresh_token
     type: object
-  rip_internal_app_dto.RouteInfo:
+  dto.RouteInfo:
     properties:
       description:
         type: string
@@ -64,14 +64,14 @@ definitions:
       title:
         type: string
     type: object
-  rip_internal_app_dto.RouteSpeedRequestInfo:
+  dto.RouteSpeedRequestInfo:
     properties:
       arrival_date:
         type: string
       ship_speed:
         type: integer
     type: object
-  rip_internal_app_dto.SignInRequest:
+  dto.SignInRequest:
     properties:
       login:
         type: string
@@ -81,9 +81,11 @@ definitions:
     - login
     - password
     type: object
-  rip_internal_app_dto.SignUpRequest:
+  dto.SignUpRequest:
     properties:
       login:
+        maxLength: 50
+        minLength: 3
         type: string
       password:
         minLength: 6
@@ -92,7 +94,7 @@ definitions:
     - login
     - password
     type: object
-  rip_internal_app_dto.SpeedRequest:
+  dto.SpeedRequest:
     properties:
       completion_date:
         type: string
@@ -111,34 +113,34 @@ definitions:
       status:
         type: string
     type: object
-  rip_internal_app_dto.SpeedRequestDetailedResponse:
+  dto.SpeedRequestDetailedResponse:
     properties:
       result:
         type: integer
       route_req:
         items:
-          $ref: '#/definitions/rip_internal_app_dto.RouteSpeedRequestInfo'
+          $ref: '#/definitions/dto.RouteSpeedRequestInfo'
         type: array
       routes:
         items:
-          $ref: '#/definitions/rip_internal_app_dto.RouteInfo'
+          $ref: '#/definitions/dto.RouteInfo'
         type: array
       speed_request:
-        $ref: '#/definitions/rip_internal_app_dto.SpeedRequest'
+        $ref: '#/definitions/dto.SpeedRequest'
     type: object
-  rip_internal_app_dto.UpdateSpeedRequest:
+  dto.UpdateSpeedRequest:
     properties:
       departure_date:
         type: string
     type: object
-  rip_internal_app_dto.UpdateUserRequest:
+  dto.UpdateUserRequest:
     properties:
       login:
         type: string
       password:
         type: string
     type: object
-  rip_internal_app_dto.UserResponse:
+  dto.UserResponse:
     properties:
       is_moderator:
         type: boolean
@@ -165,22 +167,18 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/rip_internal_app_dto.RefreshTokenRequest'
+          $ref: '#/definitions/dto.RefreshTokenRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.AuthResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: Refresh JWT tokens
       tags:
       - auth
@@ -195,22 +193,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/rip_internal_app_dto.SignInRequest'
+          $ref: '#/definitions/dto.SignInRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.AuthResponse'
+            $ref: '#/definitions/dto.AuthResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: User authentication
       tags:
       - auth
@@ -225,15 +223,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.MessageResponse'
+            $ref: '#/definitions/dto.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: User logout
@@ -250,22 +248,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/rip_internal_app_dto.SignUpRequest'
+          $ref: '#/definitions/dto.SignUpRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.AuthResponse'
+            $ref: '#/definitions/dto.AuthResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: User registration
       tags:
       - auth
@@ -310,7 +308,7 @@ paths:
           description: routes
           schema:
             items:
-              $ref: '#/definitions/rip_internal_app_ds.Route'
+              $ref: '#/definitions/ds.Route'
             type: array
       summary: Get all routes
       tags:
@@ -325,7 +323,7 @@ paths:
         "200":
           description: route
           schema:
-            $ref: '#/definitions/rip_internal_app_ds.Route'
+            $ref: '#/definitions/ds.Route'
       security:
       - BearerAuth: []
       summary: Create new route
@@ -366,7 +364,7 @@ paths:
         "200":
           description: route
           schema:
-            $ref: '#/definitions/rip_internal_app_ds.Route'
+            $ref: '#/definitions/ds.Route'
       summary: Get route by ID
       tags:
       - routes
@@ -380,7 +378,7 @@ paths:
         "200":
           description: route
           schema:
-            $ref: '#/definitions/rip_internal_app_ds.Route'
+            $ref: '#/definitions/ds.Route'
       security:
       - BearerAuth: []
       summary: Update existing route
@@ -422,6 +420,12 @@ paths:
           description: OK
           schema:
             type: object
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
       security:
       - BearerAuth: []
       summary: Remove route speed request
@@ -439,6 +443,12 @@ paths:
           description: OK
           schema:
             type: object
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "500":
+          description: Internal Server Error
       security:
       - BearerAuth: []
       summary: Update route speed request
@@ -468,7 +478,7 @@ paths:
           description: response
           schema:
             items:
-              $ref: '#/definitions/rip_internal_app_dto.SpeedRequest'
+              $ref: '#/definitions/dto.SpeedRequest'
             type: array
       security:
       - BearerAuth: []
@@ -511,7 +521,7 @@ paths:
         "200":
           description: response
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse'
+            $ref: '#/definitions/dto.SpeedRequestDetailedResponse'
       security:
       - BearerAuth: []
       summary: Get speed request by ID
@@ -531,7 +541,7 @@ paths:
         "200":
           description: request
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.UpdateSpeedRequest'
+            $ref: '#/definitions/dto.UpdateSpeedRequest'
       security:
       - BearerAuth: []
       summary: Update speed request
@@ -575,7 +585,7 @@ paths:
         "200":
           description: response
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse'
+            $ref: '#/definitions/dto.SpeedRequestDetailedResponse'
       security:
       - BearerAuth: []
       summary: Sumbit speed request
@@ -608,15 +618,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.UserResponse'
+            $ref: '#/definitions/dto.UserResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get current user profile
@@ -632,22 +642,22 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/rip_internal_app_dto.UpdateUserRequest'
+          $ref: '#/definitions/dto.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.MessageResponse'
+            $ref: '#/definitions/dto.MessageResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/rip_internal_app_dto.ErrorResponse'
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Update current user

@@ -18,10 +18,9 @@ import (
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} object
-// @Failture 401
-// @Failture 403
-// @Failture 400
-// @Failture 500
+// @Failure 403
+// @Failure 400
+// @Failure 500
 // @Router /routespeedrequests [delete]
 func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 	var request dto.RemoveRouteSpeedRequest
@@ -33,7 +32,7 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("пользователь не аутентифицирован"))
 		return
 	}
 
@@ -64,10 +63,9 @@ func (h *Handler) RemoveRouteSpeedRequest(ctx *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} object
-// @Failture 401
-// @Failture 403
-// @Failture 400
-// @Failture 500
+// @Failure 403
+// @Failure 400
+// @Failure 500
 // @Router /routespeedrequests [put]
 func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 	var request dto.UpdateRouteSpeedRequest
@@ -79,7 +77,7 @@ func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 
 	userID, exists := ctx.Get("user_id")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("пользователь не аутентифицирован"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("пользователь не аутентифицирован"))
 		return
 	}
 

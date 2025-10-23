@@ -123,7 +123,6 @@ func (h *Handler) GetRouteByID(ctx *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} ds.Route "route"
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -131,7 +130,7 @@ func (h *Handler) GetRouteByID(ctx *gin.Context) {
 func (h *Handler) CreateRoute(ctx *gin.Context) {
 	isModerator, exists := ctx.Get("is_moderator")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
 		return
 	}
 
@@ -171,7 +170,6 @@ func (h *Handler) CreateRoute(ctx *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} ds.Route "route"
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -179,7 +177,7 @@ func (h *Handler) CreateRoute(ctx *gin.Context) {
 func (h *Handler) UpdateRoute(ctx *gin.Context) {
 	isModerator, exists := ctx.Get("is_moderator")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
 		return
 	}
 
@@ -238,7 +236,6 @@ func (h *Handler) UpdateRoute(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param route_id path int true "Route ID"
 // @Success 200 {object} string "Маршрут успешно удален"
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -246,7 +243,7 @@ func (h *Handler) UpdateRoute(ctx *gin.Context) {
 func (h *Handler) DeleteRoute(ctx *gin.Context) {
 	isModerator, exists := ctx.Get("is_moderator")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
 		return
 	}
 
@@ -327,7 +324,6 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 // @Security BearerAuth
 // @Param route_id path int true "Route ID"
 // @Success 200 {object} string "Изображение успешно загружено и обновлено"
-// @Failture 401
 // @Failture 403
 // @Failture 400
 // @Failture 500
@@ -335,7 +331,7 @@ func (h *Handler) AddToDraft(ctx *gin.Context) {
 func (h *Handler) UploadRouteImage(ctx *gin.Context) {
 	isModerator, exists := ctx.Get("is_moderator")
 	if !exists {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("user not authenticated"))
+		h.errorHandler(ctx, http.StatusForbidden, fmt.Errorf("user not authenticated"))
 		return
 	}
 

@@ -1,24 +1,33 @@
 package dto
 
-type SignUpRequest struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required,min=6"`
-}
-
-type SignInRequest struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
+type AuthResponse struct {
+	Message      string       `json:"message"`
+	TokenType    string       `json:"token_type"`
+	ExpiresIn    int64        `json:"expires_in"`
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token,omitempty"`
+	User         UserResponse `json:"user"`
 }
 
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
-type AuthResponse struct {
-	Message   string       `json:"message"`
-	TokenType string       `json:"token_type"`
-	ExpiresIn int64        `json:"expires_in"`
-	User      UserResponse `json:"user"`
+type AccessTokenResponse struct {
+	Message     string `json:"message"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int64  `json:"expires_in"`
+	AccessToken string `json:"access_token"`
+}
+
+type SignUpRequest struct {
+	Login    string `json:"login" binding:"required,min=3,max=50"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type SignInRequest struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 type UserResponse struct {
@@ -38,10 +47,4 @@ type MessageResponse struct {
 
 type ErrorResponse struct {
 	Error string `json:"error"`
-}
-
-type AccessTokenResponse struct {
-	Message   string `json:"message"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int64  `json:"expires_in"`
 }

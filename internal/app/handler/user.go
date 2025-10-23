@@ -81,30 +81,12 @@ func (h *Handler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie(
-		"access_token",
-		tokenPair.AccessToken,
-		int(tokenPair.ExpiresIn),
-		"/",
-		"",
-		false,
-		true,
-	)
-
-	ctx.SetCookie(
-		"refresh_token",
-		tokenPair.RefreshToken,
-		int(h.JWTManager.GetRefreshTokenTTL().Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
-
 	response := dto.AuthResponse{
-		Message:   "Пользователь успешно зарегистрирован",
-		TokenType: tokenPair.TokenType,
-		ExpiresIn: tokenPair.ExpiresIn,
+		Message:      "Пользователь успешно зарегистрирован",
+		TokenType:    tokenPair.TokenType,
+		ExpiresIn:    tokenPair.ExpiresIn,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
 		User: dto.UserResponse{
 			UserID:      user.UserID,
 			Login:       user.Login,
@@ -164,32 +146,12 @@ func (h *Handler) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "access_token",
-		Value:    tokenPair.AccessToken,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   int(tokenPair.ExpiresIn),
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	})
-
-	http.SetCookie(ctx.Writer, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    tokenPair.RefreshToken,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   int(h.JWTManager.GetRefreshTokenTTL().Seconds()),
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	})
-
 	response := dto.AuthResponse{
-		Message:   "Успешный вход в систему",
-		TokenType: "Cookie",
-		ExpiresIn: tokenPair.ExpiresIn,
+		Message:      "Успешный вход в систему",
+		TokenType:    "Bearer",
+		ExpiresIn:    tokenPair.ExpiresIn,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
 		User: dto.UserResponse{
 			UserID:      user.UserID,
 			Login:       user.Login,
@@ -260,13 +222,19 @@ func (h *Handler) SignOut(ctx *gin.Context) {
 // @Failure 401 {object} dto.ErrorResponse
 // @Router /auth/refresh [post]
 func (h *Handler) RefreshToken(ctx *gin.Context) {
-	refreshToken, err := ctx.Cookie("refresh_token")
-	if err != nil || refreshToken == "" {
-		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("refresh token not found"))
+	var request dto.RefreshTokenRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, err)
 		return
 	}
 
-	claims, err := h.JWTManager.ValidateToken(refreshToken)
+	if request.RefreshToken == "" {
+		h.errorHandler(ctx, http.StatusBadRequest, errors.New("refresh token is required"))
+		return
+	}
+
+	claims, err := h.JWTManager.ValidateToken(request.RefreshToken)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("invalid refresh token"))
 		return
@@ -288,33 +256,44 @@ func (h *Handler) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
+	storedToken, err := h.Redis.GetRefreshToken(ctx.Request.Context(), claims.UserID)
+	if err != nil || storedToken != request.RefreshToken {
+		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("invalid refresh token"))
+		return
+	}
+
 	user, err := h.Repository.GetUserByID(claims.UserID)
 	if err != nil || user == nil {
 		h.errorHandler(ctx, http.StatusUnauthorized, errors.New("user not found"))
 		return
 	}
 
-	accessToken, err := h.JWTManager.GenerateAccessToken(user.UserID, user.Login, user.IsModerator)
+	tokenPair, err := h.JWTManager.GenerateTokenPair(user.UserID, user.Login, user.IsModerator)
 	if err != nil {
-		logrus.Errorf("Ошибка генерации access token: %v", err)
-		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка генерации токена"))
+		logrus.Errorf("Ошибка генерации токенов: %v", err)
+		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка генерации токенов"))
 		return
 	}
 
-	ctx.SetCookie(
-		"access_token",
-		accessToken,
-		int(h.JWTManager.GetAccessTokenTTL().Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
+	// Обновляем refresh token в Redis
+	err = h.Redis.StoreRefreshToken(ctx.Request.Context(), user.UserID, tokenPair.RefreshToken, h.JWTManager.GetRefreshTokenTTL())
+	if err != nil {
+		logrus.Errorf("Ошибка сохранения refresh token: %v", err)
+		h.errorHandler(ctx, http.StatusInternalServerError, errors.New("ошибка сохранения токена"))
+		return
+	}
 
-	response := dto.AccessTokenResponse{
-		Message:   "Access token успешно обновлен",
-		TokenType: "Bearer",
-		ExpiresIn: int64(h.JWTManager.GetAccessTokenTTL().Seconds()),
+	response := dto.AuthResponse{
+		Message:      "Токены успешно обновлены",
+		TokenType:    "Bearer",
+		ExpiresIn:    tokenPair.ExpiresIn,
+		AccessToken:  tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		User: dto.UserResponse{
+			UserID:      user.UserID,
+			Login:       user.Login,
+			IsModerator: user.IsModerator,
+		},
 	}
 
 	ctx.JSON(http.StatusOK, response)

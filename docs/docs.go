@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.RefreshTokenRequest"
+                            "$ref": "#/definitions/dto.RefreshTokenRequest"
                         }
                     }
                 ],
@@ -43,19 +43,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.AuthResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -81,7 +75,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.SignInRequest"
+                            "$ref": "#/definitions/dto.SignInRequest"
                         }
                     }
                 ],
@@ -89,19 +83,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
+                            "$ref": "#/definitions/dto.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -129,19 +123,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.MessageResponse"
+                            "$ref": "#/definitions/dto.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -167,7 +161,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.SignUpRequest"
+                            "$ref": "#/definitions/dto.SignUpRequest"
                         }
                     }
                 ],
@@ -175,19 +169,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.AuthResponse"
+                            "$ref": "#/definitions/dto.AuthResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -257,7 +251,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/rip_internal_app_ds.Route"
+                                "$ref": "#/definitions/ds.Route"
                             }
                         }
                     }
@@ -284,7 +278,7 @@ const docTemplate = `{
                     "200": {
                         "description": "route",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                            "$ref": "#/definitions/ds.Route"
                         }
                     }
                 }
@@ -313,7 +307,7 @@ const docTemplate = `{
                     "200": {
                         "description": "route",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                            "$ref": "#/definitions/ds.Route"
                         }
                     }
                 }
@@ -339,7 +333,7 @@ const docTemplate = `{
                     "200": {
                         "description": "route",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_ds.Route"
+                            "$ref": "#/definitions/ds.Route"
                         }
                     }
                 }
@@ -438,6 +432,15 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             },
@@ -464,6 +467,15 @@ const docTemplate = `{
                         "schema": {
                             "type": "object"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
                     }
                 }
             }
@@ -510,7 +522,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/rip_internal_app_dto.SpeedRequest"
+                                "$ref": "#/definitions/dto.SpeedRequest"
                             }
                         }
                     }
@@ -570,7 +582,7 @@ const docTemplate = `{
                     "200": {
                         "description": "response",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse"
+                            "$ref": "#/definitions/dto.SpeedRequestDetailedResponse"
                         }
                     }
                 }
@@ -602,7 +614,7 @@ const docTemplate = `{
                     "200": {
                         "description": "request",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.UpdateSpeedRequest"
+                            "$ref": "#/definitions/dto.UpdateSpeedRequest"
                         }
                     }
                 }
@@ -705,7 +717,7 @@ const docTemplate = `{
                     "200": {
                         "description": "response",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.SpeedRequestDetailedResponse"
+                            "$ref": "#/definitions/dto.SpeedRequestDetailedResponse"
                         }
                     }
                 }
@@ -733,19 +745,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.UserResponse"
+                            "$ref": "#/definitions/dto.UserResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -774,7 +786,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.UpdateUserRequest"
+                            "$ref": "#/definitions/dto.UpdateUserRequest"
                         }
                     }
                 ],
@@ -782,19 +794,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.MessageResponse"
+                            "$ref": "#/definitions/dto.MessageResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/rip_internal_app_dto.ErrorResponse"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -802,7 +814,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "rip_internal_app_ds.Route": {
+        "ds.Route": {
             "type": "object",
             "properties": {
                 "delay": {
@@ -828,7 +840,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.AuthResponse": {
+        "dto.AuthResponse": {
             "type": "object",
             "properties": {
                 "access_token": {
@@ -847,11 +859,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/rip_internal_app_dto.UserResponse"
+                    "$ref": "#/definitions/dto.UserResponse"
                 }
             }
         },
-        "rip_internal_app_dto.ErrorResponse": {
+        "dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -859,7 +871,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.MessageResponse": {
+        "dto.MessageResponse": {
             "type": "object",
             "properties": {
                 "message": {
@@ -867,7 +879,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.RefreshTokenRequest": {
+        "dto.RefreshTokenRequest": {
             "type": "object",
             "required": [
                 "refresh_token"
@@ -878,7 +890,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.RouteInfo": {
+        "dto.RouteInfo": {
             "type": "object",
             "properties": {
                 "description": {
@@ -901,7 +913,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.RouteSpeedRequestInfo": {
+        "dto.RouteSpeedRequestInfo": {
             "type": "object",
             "properties": {
                 "arrival_date": {
@@ -912,7 +924,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.SignInRequest": {
+        "dto.SignInRequest": {
             "type": "object",
             "required": [
                 "login",
@@ -927,7 +939,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.SignUpRequest": {
+        "dto.SignUpRequest": {
             "type": "object",
             "required": [
                 "login",
@@ -935,7 +947,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "login": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
                 },
                 "password": {
                     "type": "string",
@@ -943,7 +957,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.SpeedRequest": {
+        "dto.SpeedRequest": {
             "type": "object",
             "properties": {
                 "completion_date": {
@@ -972,7 +986,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.SpeedRequestDetailedResponse": {
+        "dto.SpeedRequestDetailedResponse": {
             "type": "object",
             "properties": {
                 "result": {
@@ -981,21 +995,21 @@ const docTemplate = `{
                 "route_req": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/rip_internal_app_dto.RouteSpeedRequestInfo"
+                        "$ref": "#/definitions/dto.RouteSpeedRequestInfo"
                     }
                 },
                 "routes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/rip_internal_app_dto.RouteInfo"
+                        "$ref": "#/definitions/dto.RouteInfo"
                     }
                 },
                 "speed_request": {
-                    "$ref": "#/definitions/rip_internal_app_dto.SpeedRequest"
+                    "$ref": "#/definitions/dto.SpeedRequest"
                 }
             }
         },
-        "rip_internal_app_dto.UpdateSpeedRequest": {
+        "dto.UpdateSpeedRequest": {
             "type": "object",
             "properties": {
                 "departure_date": {
@@ -1003,7 +1017,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.UpdateUserRequest": {
+        "dto.UpdateUserRequest": {
             "type": "object",
             "properties": {
                 "login": {
@@ -1014,7 +1028,7 @@ const docTemplate = `{
                 }
             }
         },
-        "rip_internal_app_dto.UserResponse": {
+        "dto.UserResponse": {
             "type": "object",
             "properties": {
                 "is_moderator": {

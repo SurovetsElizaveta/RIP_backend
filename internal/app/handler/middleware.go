@@ -21,7 +21,7 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 		}
 
 		if tokenString == "" {
-			h.errorHandler(ctx, 401, errors.New("authorization required"))
+			h.errorHandler(ctx, 403, errors.New("authorization required"))
 			ctx.Abort()
 			return
 		}
