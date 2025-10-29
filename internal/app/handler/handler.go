@@ -34,6 +34,8 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.GET("/routes", h.GetAllRoutes)
 	api.GET("/routes/:route_id", h.GetRouteByID)
 
+	api.GET("/speedrequests/draft", h.GetDraftInfo)
+
 	// Protected routes
 	auth := api.Group("/")
 	auth.Use(h.AuthMiddleware())
@@ -44,7 +46,6 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 		auth.POST("/draft/addroute/:route_id", h.AddToDraft)
 
-		auth.GET("/speedrequests/draft", h.GetDraftInfo)
 		auth.GET("/speedrequests", h.GetAllSpeedRequests)
 		auth.GET("/speedrequests/:speed_request_id", h.GetSpeedRequestByID)
 		auth.PUT("/speedrequests/:speed_request_id", h.UpdateSpeedRequest)
