@@ -13,7 +13,7 @@ import (
 
 func (r *Repository) GetAllRoutes() ([]ds.Route, error) {
 	var routes []ds.Route
-	err := r.db.Find(&routes).Error
+	err := r.db.Where("status = ?", "действует").Find(&routes).Error
 	if err != nil {
 		return nil, err
 	}
@@ -22,19 +22,13 @@ func (r *Repository) GetAllRoutes() ([]ds.Route, error) {
 
 func (r *Repository) GetRoutesByDistance(minDistance, maxDistance int) ([]ds.Route, error) {
 	var routes []ds.Route
-	err := r.db.Find(&routes).Error
+
+	err := r.db.Where("status = ? AND distance >= ? AND distance <= ?", "действует", minDistance, maxDistance).Find(&routes).Error
 	if err != nil {
 		return nil, err
 	}
 
-	var result []ds.Route
-	for _, route := range routes {
-		if route.Distance >= minDistance && route.Distance <= maxDistance {
-			result = append(result, route)
-		}
-	}
-
-	return result, nil
+	return routes, nil
 }
 
 func (r *Repository) GetRouteByID(route_id uint) (ds.Route, error) {
