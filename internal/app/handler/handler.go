@@ -27,9 +27,9 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api := router.Group("/api")
 
 	// Public routes
-	api.POST("/signup", h.SignUp)
-	api.POST("/signin", h.SignIn)
-	api.POST("/refresh", h.RefreshToken)
+	api.POST("/auth/signup", h.SignUp)
+	api.POST("/auth/signin", h.SignIn)
+	api.POST("/auth/refresh", h.RefreshToken)
 
 	api.GET("/routes", h.GetAllRoutes)
 	api.GET("/routes/:route_id", h.GetRouteByID)
@@ -40,7 +40,7 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	auth := api.Group("/")
 	auth.Use(h.AuthMiddleware())
 	{
-		auth.POST("/signout", h.SignOut)
+		auth.POST("/auth/signout", h.SignOut)
 		auth.GET("/users/me", h.GetCurrentUser)
 		auth.PUT("/users/me", h.UpdateUser)
 
