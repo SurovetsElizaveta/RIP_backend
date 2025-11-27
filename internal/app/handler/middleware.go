@@ -20,6 +20,11 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 			}
 		}
 
+		if tokenString == "" && ctx.Request.URL.Path == "/api/speedrequests/draft" {
+			ctx.Next()
+			return
+		}
+
 		if tokenString == "" {
 			h.errorHandler(ctx, 403, errors.New("authorization required"))
 			ctx.Abort()

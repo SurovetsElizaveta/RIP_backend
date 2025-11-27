@@ -34,12 +34,11 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 	api.GET("/routes", h.GetAllRoutes)
 	api.GET("/routes/:route_id", h.GetRouteByID)
 
-	api.GET("/speedrequests/draft", h.GetDraftInfo)
-
 	// Protected routes
 	auth := api.Group("/")
 	auth.Use(h.AuthMiddleware())
 	{
+		auth.GET("/speedrequests/draft", h.GetDraftInfo)
 		auth.POST("/auth/signout", h.SignOut)
 		auth.GET("/users/me", h.GetCurrentUser)
 		auth.PUT("/users/me", h.UpdateUser)
