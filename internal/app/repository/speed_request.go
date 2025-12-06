@@ -42,7 +42,7 @@ func (r *Repository) GetSpeedRequestsWithFilters(
 		Preload("Moderator")
 
 	if !isModerator {
-		query = query.Where("creator_id = ?", userID)
+		query = query.Where("creator_id = ?", userID).Where("status NOT IN (?, ?)", "черновик", "удалена")
 	}
 
 	if status != "" {
@@ -64,6 +64,7 @@ func (r *Repository) GetSpeedRequestsWithFilters(
 	err := query.Find(&speedRequests).Error
 	return speedRequests, err
 }
+
 func (r *Repository) GetSpeedRequestWithRoutes(speedRequestID uint, userID uint) (ds.SpeedRequest, []ds.RouteSpeedRequest, error) {
 	var speedRequest ds.SpeedRequest
 	err := r.db.
