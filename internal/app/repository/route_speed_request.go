@@ -5,6 +5,7 @@ import (
 
 	"rip/internal/app/ds"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -21,14 +22,24 @@ func (r *Repository) RemoveRouteFromSpeedRequest(speedRequestID uint, routeID ui
 
 func (r *Repository) UpdateRouteSpeedRequest(speedRequestID uint, routeID uint, updates map[string]interface{}) error {
 	var routeSpeedRequest ds.RouteSpeedRequest
+
+	logrus.Infof("Поиск связи: speed_request_id=%d, route_id=%d", speedRequestID, routeID)
+
 	if err := r.db.Where("speed_request_id = ? AND route_id = ?", speedRequestID, routeID).First(&routeSpeedRequest).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logrus.Errorf("Связь не найдена: speed_request_id=%d, route_id=%d", speedRequestID, routeID)
 			return errors.New("связь не найдена")
 		}
 		return err
 	}
 
-	return r.db.Model(&routeSpeedRequest).Updates(updates).Error
+	logrus.Infof("Найдена связь, обновление полей: %+v", updates)
+
+	result := r.db.Model(&routeSpeedRequest).Updates(updates)
+
+	logrus.Infof("Обновлено строк: %d", result.RowsAffected)
+
+	return result.Error
 }
 
 func (r *Repository) ValidateSpeedRequestAccess(speedRequestID uint, userID uint) error {
@@ -62,4 +73,16 @@ func (r *Repository) GetRouteSpeedRequest(speedRequestID uint, routeID uint) (*d
 	}
 
 	return &routeSpeedRequest, nil
+}
+
+func (r *Repository) UpdateRouteSpeedRequestShipSpeed(speedRequestID uint, routeID uint, shipSpeed int) error {
+	var routeSpeedRequest ds.RouteSpeedRequest
+	if err := r.db.Where("speed_request_id = ? AND route_id = ?", speedRequestID, routeID).First(&routeSpeedRequest).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("связь не найдена")
+		}
+		return err
+	}
+
+	return r.db.Model(&routeSpeedRequest).Update("ship_speed", shipSpeed).Error
 }

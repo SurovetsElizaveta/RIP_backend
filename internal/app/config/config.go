@@ -11,10 +11,11 @@ import (
 )
 
 type Config struct {
-	ServiceHost string
-	ServicePort int
-	JWT         JWTConfig
-	Redis       RedisConfig
+	ServiceHost  string
+	ServicePort  int
+	JWT          JWTConfig
+	Redis        RedisConfig
+	AsyncService AsyncServiceConfig
 }
 
 type JWTConfig struct {
@@ -28,6 +29,11 @@ type RedisConfig struct {
 	Port     int
 	Password string
 	DB       int
+}
+
+type AsyncServiceConfig struct {
+	URL   string
+	Token string
 }
 
 func NewConfig() (*Config, error) {
@@ -64,6 +70,9 @@ func NewConfig() (*Config, error) {
 	cfg.Redis.Port, _ = strconv.Atoi(getEnv("REDIS_PORT", "6379"))
 	cfg.Redis.Password = getEnv("REDIS_PASSWORD", "")
 	cfg.Redis.DB, _ = strconv.Atoi(getEnv("REDIS_DB", "0"))
+
+	cfg.AsyncService.URL = getEnv("ASYNC_SERVICE_URL", "http://localhost:8000/api/calculate")
+	cfg.AsyncService.Token = getEnv("ASYNC_SERVICE_TOKEN", "SECRET_ASYNC_TOKEN_DJANGO")
 
 	logrus.Info("config parsed")
 

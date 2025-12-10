@@ -15,6 +15,7 @@ type SpeedRequest struct {
 	CreatorLogin   string `json:"creator_login"`
 	ModeratorLogin string `json:"moderator_login,omitempty"`
 	Status         string `json:"status"`
+	ResultsCount   int64  `json:"results_count"`
 }
 
 type SpeedRequestDetailedResponse struct {

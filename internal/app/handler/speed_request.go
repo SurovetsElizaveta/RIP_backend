@@ -10,6 +10,7 @@ import (
 	"rip/internal/app/dto"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 func formatDate(t time.Time) string {
@@ -131,6 +132,11 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 
 	response := make([]dto.SpeedRequest, len(speedRequests))
 	for i, sr := range speedRequests {
+		resultsCount, err := h.Repository.GetSpeedRequestResultsCount(sr.SpeedRequestID)
+		if err != nil {
+			resultsCount = 0 // В случае ошибки устанавливаем 0
+		}
+
 		response[i] = dto.SpeedRequest{
 			SpeedRequestID: sr.SpeedRequestID,
 			DepartureDate:  formatDate(sr.DepartureDate),
@@ -140,6 +146,7 @@ func (h *Handler) GetAllSpeedRequests(ctx *gin.Context) {
 			Status:         sr.Status,
 			CreatorLogin:   sr.Creator.Login,
 			ModeratorLogin: getModeratorLogin(sr.Moderator),
+			ResultsCount:   resultsCount,
 		}
 	}
 
@@ -357,6 +364,34 @@ func (h *Handler) CompleteSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
+	// Если статус "завершена", запускаем асинхронные расчеты для каждого маршрута
+	if request.Status == "завершена" {
+		speedRequest, routes, err := h.Repository.GetSpeedRequestWithRoutes(uint(speedRequestID), userID.(uint))
+		if err != nil {
+			if err.Error() == "заявка не найдена" {
+				h.errorHandler(ctx, http.StatusNotFound, err)
+			} else {
+				h.errorHandler(ctx, http.StatusInternalServerError, err)
+			}
+			return
+		}
+
+		// Отправляем запросы в асинхронный сервис для каждого маршрута
+		for _, route := range routes {
+			if err := h.AsyncService.RequestSpeedCalculation(
+				speedRequest.SpeedRequestID,
+				route.RouteID,
+				float64(route.Route.Distance),
+				float64(route.Route.Delay),
+				speedRequest.DepartureDate, // Дата отправления из заявки
+				route.ArrivalDate,          // Дата прибытия из маршрута
+			); err != nil {
+				// Логируем ошибку, но продолжаем обработку других маршрутов
+				logrus.Errorf("Ошибка отправки запроса для маршрута %d: %v", route.RouteID, err)
+			}
+		}
+	}
+
 	if err := h.Repository.CompleteSpeedRequest(uint(speedRequestID), userID.(uint), request.Status); err != nil {
 		if err.Error() == "заявка не найдена" {
 			h.errorHandler(ctx, http.StatusNotFound, err)
@@ -421,4 +456,65 @@ func getModeratorLogin(moderator ds.User) string {
 		return ""
 	}
 	return moderator.Login
+}
+
+// ReceiveAsyncResult godoc
+// @Summary Receive async calculation result
+// @Description Receive result from async service for speed calculation
+// @Tags speedrequests
+// @Accept json
+// @Produce json
+// @Param request body object true "Async result data"
+// @Success 200 {object} object
+// @Failure 400 {object} object
+// @Failure 401 {object} object
+// @Failure 500 {object} object
+// @Router /async/result [post]
+func (h *Handler) ReceiveAsyncResult(ctx *gin.Context) {
+	var request struct {
+		Success         bool    `json:"success" binding:"required"`
+		CalculatedSpeed float64 `json:"calculated_speed" binding:"required"`
+		SpeedRequestID  uint    `json:"speed_request_id" binding:"required"`
+		RouteID         uint    `json:"route_id" binding:"required"`
+		AuthToken       string  `json:"auth_token" binding:"required"`
+		Message         string  `json:"message"`
+	}
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат данных: %v", err))
+		return
+	}
+
+	// Проверка токена авторизации
+	expectedToken := h.Config.AsyncService.Token
+	if request.AuthToken != expectedToken {
+		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("неверный токен авторизации"))
+		return
+	}
+
+	// Обновляем поле ShipSpeed в RouteSpeedRequest
+	// Если success = false, можно не обновлять или установить 0
+	var shipSpeed int
+	if request.Success {
+		shipSpeed = int(request.CalculatedSpeed)
+	} else {
+		shipSpeed = 0 // или можно не обновлять вообще
+	}
+
+	if err := h.Repository.UpdateRouteSpeedRequestShipSpeed(
+		request.SpeedRequestID,
+		request.RouteID,
+		shipSpeed,
+	); err != nil {
+		if err.Error() == "связь не найдена" {
+			h.errorHandler(ctx, http.StatusNotFound, err)
+		} else {
+			h.errorHandler(ctx, http.StatusInternalServerError, err)
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Результат успешно обработан",
+	})
 }

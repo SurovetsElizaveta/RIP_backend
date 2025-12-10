@@ -7,6 +7,7 @@ import (
 	"rip/internal/app/jwt"
 	"rip/internal/app/redis"
 	"rip/internal/app/repository"
+	"rip/internal/app/service"
 	"rip/internal/pkg"
 	"rip/internal/pkg/minio"
 
@@ -74,7 +75,9 @@ func main() {
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Use(CORSMiddleware())
 
-	hand := handler.NewHandler(rep, jwtManager, redisClient)
+	asyncService := service.NewAsyncService(conf.AsyncService)
+
+	hand := handler.NewHandler(rep, jwtManager, redisClient, asyncService, conf)
 
 	application := pkg.NewApp(conf, router, hand)
 	application.RunApp()

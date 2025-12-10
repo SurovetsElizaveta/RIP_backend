@@ -8,6 +8,7 @@ import (
 	"rip/internal/app/dto"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // RemoveRouteSpeedRequest godoc
@@ -87,16 +88,25 @@ func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 	}
 
 	updates := make(map[string]interface{})
-	parsedArrivalDate, err := time.Parse("02.01.2006", request.ArrivalDate)
-	if err != nil {
-		return
-	}
-	if parsedArrivalDate != (time.Time{}) {
-		updates["arrival_date"] = parsedArrivalDate
+
+	// ВАЖНО: Проверяем, что ArrivalDate не nil/пустой
+	if request.ArrivalDate != "" {
+		parsedArrivalDate, err := time.Parse("02.01.2006", request.ArrivalDate)
+		if err != nil {
+			// Обрабатываем ошибку парсинга
+			h.errorHandler(ctx, http.StatusBadRequest,
+				fmt.Errorf("неверный формат даты: %s. Ожидается формат ДД.ММ.ГГГГ", request.ArrivalDate))
+			return
+		}
+
+		if !parsedArrivalDate.IsZero() {
+			updates["arrival_date"] = parsedArrivalDate
+		}
 	}
 
 	if len(updates) == 0 {
-		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("нет полей для обновления"))
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("нет полей для обновления. Укажите arrival_date"))
 		return
 	}
 
@@ -109,7 +119,14 @@ func (h *Handler) UpdateRouteSpeedRequest(ctx *gin.Context) {
 		return
 	}
 
+	// Добавьте логирование для отладки
+	logrus.Infof("Обновлена дата прибытия: speed_request_id=%d, route_id=%d, arrival_date=%s",
+		request.SpeedRequestID, request.RouteID, request.ArrivalDate)
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Данные успешно обновлены",
+		"message":          "Данные успешно обновлены",
+		"speed_request_id": request.SpeedRequestID,
+		"route_id":         request.RouteID,
+		"arrival_date":     request.ArrivalDate,
 	})
 }

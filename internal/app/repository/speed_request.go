@@ -29,6 +29,14 @@ func (r *Repository) GetSpeedRequestRoutesCount(speedRequestID uint) (int64, err
 	return count, err
 }
 
+func (r *Repository) GetSpeedRequestResultsCount(speedRequestID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&ds.RouteSpeedRequest{}).
+		Where("speed_request_id = ? AND ship_speed IS NOT NULL AND ship_speed != 0", speedRequestID).
+		Count(&count).Error
+	return count, err
+}
+
 func (r *Repository) GetSpeedRequestsWithFilters(
 	status string,
 	dateFrom, dateTo *time.Time,
@@ -212,11 +220,8 @@ func (r *Repository) CompleteSpeedRequest(speedRequestID uint, moderatorID uint,
 		return errors.New("неверный статус")
 	}
 
-	if status == ds.StatusCompleted {
-		if err := r.calculateShipSpeedRequest(speedRequest); err != nil {
-			return fmt.Errorf("ошибка расчета скорости контейнеровоза: %w", err)
-		}
-	}
+	// Расчет скорости теперь выполняется асинхронно через внешний сервис
+	// При завершении заявки просто обновляем статус
 
 	updates := map[string]interface{}{
 		"status":          status,

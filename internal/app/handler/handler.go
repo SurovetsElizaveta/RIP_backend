@@ -1,25 +1,31 @@
 package handler
 
 import (
+	"rip/internal/app/config"
 	"rip/internal/app/jwt"
 	"rip/internal/app/redis"
 	"rip/internal/app/repository"
+	"rip/internal/app/service"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
 type Handler struct {
-	Repository *repository.Repository
-	JWTManager *jwt.Manager
-	Redis      *redis.Client
+	Repository   *repository.Repository
+	JWTManager   *jwt.Manager
+	Redis        *redis.Client
+	AsyncService *service.AsyncService
+	Config       *config.Config
 }
 
-func NewHandler(r *repository.Repository, jwtManager *jwt.Manager, redisClient *redis.Client) *Handler {
+func NewHandler(r *repository.Repository, jwtManager *jwt.Manager, redisClient *redis.Client, asyncService *service.AsyncService, cfg *config.Config) *Handler {
 	return &Handler{
-		Repository: r,
-		JWTManager: jwtManager,
-		Redis:      redisClient,
+		Repository:   r,
+		JWTManager:   jwtManager,
+		Redis:        redisClient,
+		AsyncService: asyncService,
+		Config:       cfg,
 	}
 }
 
@@ -33,6 +39,9 @@ func (h *Handler) RegisterHandler(router *gin.Engine) {
 
 	api.GET("/routes", h.GetAllRoutes)
 	api.GET("/routes/:route_id", h.GetRouteByID)
+
+	// Async service callback (public endpoint for async service)
+	api.POST("/async/result", h.ReceiveAsyncResult)
 
 	// Protected routes
 	auth := api.Group("/")
