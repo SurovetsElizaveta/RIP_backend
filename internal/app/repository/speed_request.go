@@ -53,6 +53,10 @@ func (r *Repository) GetSpeedRequestsWithFilters(
 		query = query.Where("creator_id = ?", userID).Where("status NOT IN (?, ?)", "черновик", "удалена")
 	}
 
+	if isModerator {
+		query = query.Where("status NOT IN (?, ?)", "черновик", "удалена")
+	}
+
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}

@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"rip/internal/app/ds"
@@ -471,34 +474,74 @@ func getModeratorLogin(moderator ds.User) string {
 // @Failure 500 {object} object
 // @Router /async/result [post]
 func (h *Handler) ReceiveAsyncResult(ctx *gin.Context) {
+	// Логируем входящий запрос
+	logrus.Infof("Получен запрос от Django: метод=%s, путь=%s",
+		ctx.Request.Method, ctx.Request.URL.Path)
+
+	// Проверяем метод
+	if ctx.Request.Method != "POST" {
+		h.errorHandler(ctx, http.StatusMethodNotAllowed,
+			fmt.Errorf("метод %s не разрешен, ожидается POST", ctx.Request.Method))
+		return
+	}
+
+	// Проверяем Content-Type
+	contentType := ctx.GetHeader("Content-Type")
+	if !strings.Contains(contentType, "application/json") {
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("неверный Content-Type: %s, ожидается application/json", contentType))
+		return
+	}
+
+	// Читаем тело запроса
+	body, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("ошибка чтения тела запроса: %v", err))
+		return
+	}
+
+	if len(body) == 0 {
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("пустое тело запроса"))
+		return
+	}
+
+	logrus.Infof("Тело запроса от Django: %s", string(body))
+
 	var request struct {
-		Success         bool    `json:"success" binding:"required"`
-		CalculatedSpeed float64 `json:"calculated_speed" binding:"required"`
+		Success         bool    `json:"success"`
+		CalculatedSpeed float64 `json:"calculated_speed"`
 		SpeedRequestID  uint    `json:"speed_request_id" binding:"required"`
 		RouteID         uint    `json:"route_id" binding:"required"`
 		AuthToken       string  `json:"auth_token" binding:"required"`
 		Message         string  `json:"message"`
 	}
 
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		h.errorHandler(ctx, http.StatusBadRequest, fmt.Errorf("неверный формат данных: %v", err))
+	if err := json.Unmarshal(body, &request); err != nil {
+		logrus.Errorf("Ошибка парсинга JSON: %v, тело: %s", err, string(body))
+		h.errorHandler(ctx, http.StatusBadRequest,
+			fmt.Errorf("неверный формат JSON: %v", err))
 		return
 	}
 
-	// Проверка токена авторизации
+	// Проверка токена
 	expectedToken := h.Config.AsyncService.Token
 	if request.AuthToken != expectedToken {
-		h.errorHandler(ctx, http.StatusUnauthorized, fmt.Errorf("неверный токен авторизации"))
+		h.errorHandler(ctx, http.StatusUnauthorized,
+			fmt.Errorf("неверный токен авторизации"))
 		return
 	}
 
-	// Обновляем поле ShipSpeed в RouteSpeedRequest
-	// Если success = false, можно не обновлять или установить 0
+	logrus.Infof("Обработка результата: success=%v, speed=%f, speed_request_id=%d, route_id=%d",
+		request.Success, request.CalculatedSpeed, request.SpeedRequestID, request.RouteID)
+
+	// Обновляем скорость
 	var shipSpeed int
-	if request.Success {
+	if request.Success && request.CalculatedSpeed > 0 {
 		shipSpeed = int(request.CalculatedSpeed)
 	} else {
-		shipSpeed = 0 // или можно не обновлять вообще
+		shipSpeed = 0
 	}
 
 	if err := h.Repository.UpdateRouteSpeedRequestShipSpeed(
@@ -506,15 +549,15 @@ func (h *Handler) ReceiveAsyncResult(ctx *gin.Context) {
 		request.RouteID,
 		shipSpeed,
 	); err != nil {
-		if err.Error() == "связь не найдена" {
-			h.errorHandler(ctx, http.StatusNotFound, err)
-		} else {
-			h.errorHandler(ctx, http.StatusInternalServerError, err)
-		}
+		logrus.Errorf("Ошибка обновления скорости: %v", err)
+		h.errorHandler(ctx, http.StatusInternalServerError, err)
 		return
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "Результат успешно обработан",
+		"message":          "Результат успешно обработан",
+		"speed_request_id": request.SpeedRequestID,
+		"route_id":         request.RouteID,
+		"ship_speed":       shipSpeed,
 	})
 }
