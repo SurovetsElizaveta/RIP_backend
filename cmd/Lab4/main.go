@@ -27,8 +27,8 @@ func CORSMiddleware() gin.HandlerFunc {
 			"http://localhost:3000",
 			"https://localhost:3000",
 			"https://surovetselizaveta.github.io",
-			"http://192.168.0.55:3000",
-			"https://192.168.0.55:3000",
+			"http://10.165.215.65:3000",
+			"https://10.165.215.65:3000",
 		}
 
 		origin := c.Request.Header.Get("Origin")
