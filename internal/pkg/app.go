@@ -1,7 +1,9 @@
 package pkg
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net/http"
 
 	"rip/internal/app/config"
 	"rip/internal/app/handler"
@@ -35,4 +37,27 @@ func (a *Application) RunApp() {
 		logrus.Fatal(err)
 	}
 	logrus.Info("Server down")
+}
+
+func (a *Application) RunHTTPS() {
+	logrus.Info("HTTPS Server start up")
+
+	a.Handler.RegisterHandler(a.Router)
+	a.Handler.RegisterStatic(a.Router)
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", a.Config.ServiceHost, a.Config.ServicePort),
+		Handler: a.Router,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+
+	logrus.Infof("Starting HTTPS on https://%s:%d", a.Config.ServiceHost, a.Config.ServicePort)
+
+	if err := server.ListenAndServeTLS("cert.pem", "key.pem"); err != nil {
+		logrus.Fatal(err)
+	}
+
+	logrus.Info("HTTPS Server down")
 }

@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/tls"
+	"fmt"
+	"net/http"
 	"rip/internal/app/config"
 	"rip/internal/app/dsn"
 	"rip/internal/app/handler"
@@ -8,7 +11,6 @@ import (
 	"rip/internal/app/redis"
 	"rip/internal/app/repository"
 	"rip/internal/app/service"
-	"rip/internal/pkg"
 	"rip/internal/pkg/minio"
 
 	"github.com/gin-gonic/gin"
@@ -21,10 +23,26 @@ import (
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		allowedOrigins := []string{
+			"http://localhost:3000",
+			"https://localhost:3000",
+			"https://surovetselizaveta.github.io",
+			"http://192.168.0.55:3000",
+			"https://192.168.0.55:3000",
+		}
+
+		origin := c.Request.Header.Get("Origin")
+
+		for _, allowed := range allowedOrigins {
+			if allowed == origin {
+				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
+				break
+			}
+		}
+
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -46,6 +64,7 @@ func CORSMiddleware() gin.HandlerFunc {
 // @name Authorization
 func main() {
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 
 	conf, err := config.NewConfig()
 	if err != nil {
@@ -73,12 +92,25 @@ func main() {
 	}
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.Use(CORSMiddleware())
 
 	asyncService := service.NewAsyncService(conf.AsyncService)
-
 	hand := handler.NewHandler(rep, jwtManager, redisClient, asyncService, conf)
 
-	application := pkg.NewApp(conf, router, hand)
-	application.RunApp()
+	hand.RegisterHandler(router)
+	hand.RegisterStatic(router)
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", conf.ServiceHost, conf.ServicePort),
+		Handler: router,
+		TLSConfig: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		},
+	}
+
+	logrus.Infof("Starting HTTPS server on https://%s:%d", conf.ServiceHost, conf.ServicePort)
+
+	err = server.ListenAndServeTLS("cert.pem", "key.pem")
+	if err != nil {
+		logrus.Fatalf("Failed to start HTTPS server: %v", err)
+	}
 }
